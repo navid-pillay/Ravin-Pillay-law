@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ravin Pillay Law | Toronto Lawyer</title>
-  <meta name="description" content="Ravin Pillay Law — practical, personal legal counsel in Toronto, Ontario.">
+  <title>Ravin Pillay Law | Toronto Criminal Defence Lawyer</title>
+  <meta name="description" content="Ravin Pillay is a Toronto criminal defence lawyer with an office on Queens Quay. Charged with an offence? Protect your rights and your future.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -89,9 +89,29 @@
         linear-gradient(115deg, rgba(20,33,61,.96) 0%, rgba(20,33,61,.88) 55%, rgba(43,58,92,.8) 100%),
         repeating-linear-gradient(90deg, transparent 0 120px, rgba(255,255,255,.03) 120px 121px);
       color: #fff;
-      padding: 120px 0 130px;
+      position: relative;
+      overflow: hidden;
+      min-height: calc(100vh - 72px);
+      min-height: calc(100svh - 72px);
+      display: flex;
+      align-items: center;
+      padding: 96px 0;
     }
-    .hero h1 { color: #fff; font-size: clamp(40px, 6vw, 68px); max-width: 14ch; }
+    .hero .wrap { position: relative; z-index: 1; width: 100%; }
+    .hero-art {
+      position: absolute;
+      top: 50%;
+      right: -6%;
+      height: 112%;
+      max-width: none;
+      transform: translateY(-50%);
+      opacity: .32;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hero-rights { margin: 40px 0 0; padding: 0; list-style: none; display: flex; gap: 28px; flex-wrap: wrap; font-size: 14px; color: rgba(255,255,255,.75); }
+    .hero-rights li::before { content: "\2014\00a0"; color: var(--gold); }
+    .hero h1 { color: #fff; font-size: clamp(40px, 6vw, 72px); max-width: 15ch; }
     .hero h1 em { font-style: italic; color: var(--gold); }
     .hero p.lead { font-size: 19px; max-width: 56ch; color: rgba(255,255,255,.82); margin: 0 0 36px; }
     .hero .eyebrow { color: var(--gold); }
@@ -174,6 +194,11 @@
     .cta h2 { color: #fff; font-size: clamp(28px, 3.5vw, 40px); margin: 0 0 6px; }
     .cta p { margin: 0; color: rgba(255,255,255,.75); }
 
+    .rights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 36px; }
+    .rights-grid h3 { color: var(--gold); font-size: 24px; margin-bottom: 6px; }
+    .rights-grid p { margin: 0; color: rgba(255,255,255,.75); font-size: 15px; }
+    .cta .wrap.stack { display: block; }
+
     /* Contact */
     .contact-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; }
     .contact-list { list-style: none; padding: 0; margin: 28px 0 0; }
@@ -218,7 +243,8 @@
       body { font-size: 16px; }
       .wrap { padding: 0 16px; }
       section { padding: 72px 0; }
-      .hero { padding: 84px 0 92px; }
+      .hero { padding: 72px 0; }
+      .hero-art { right: 50%; transform: translate(50%, -50%); height: 96%; opacity: .2; }
       .menu-toggle { display: block; }
       .nav-links {
         display: none;
@@ -232,7 +258,7 @@
       .nav-links a { display: block; padding: 12px 0; }
       .nav-links .btn { text-align: center; margin-top: 8px; }
       .brand-tag { display: none; }
-      .grid, .steps, .row, .facts { grid-template-columns: 1fr; }
+      .grid, .steps, .row, .facts, .rights-grid { grid-template-columns: 1fr; }
       form { padding: 24px; }
       footer nav a { margin: 0 20px 0 0; }
     }
@@ -244,11 +270,11 @@
     <div class="wrap nav">
       <a class="brand" href="#top">
         <span class="brand-name">Ravin Pillay</span>
-        <span class="brand-tag">Law</span>
+        <span class="brand-tag">Criminal Defence</span>
       </a>
       <button class="menu-toggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
       <ul class="nav-links">
-        <li><a href="#practice">Practice Areas</a></li>
+        <li><a href="#practice">Charges</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#approach">Approach</a></li>
         <li><a class="btn btn-gold" href="#contact">Book a Consultation</a></li>
@@ -258,55 +284,61 @@
 
   <main id="top">
     <section class="hero">
+      <img class="hero-art" src="lady-justice.svg" alt="" aria-hidden="true">
       <div class="wrap">
-        <p class="eyebrow">Toronto, Ontario</p>
-        <h1>Clear advice. <em>Steady</em> advocacy.</h1>
-        <p class="lead">Ravin Pillay Law provides practical, personal legal counsel to individuals, families and businesses across the Greater Toronto Area — with straight answers and a lawyer who knows your file.</p>
+        <p class="eyebrow">Criminal Defence Lawyer &middot; Toronto</p>
+        <h1>Charged with a crime? <em>Your defence</em> starts here.</h1>
+        <p class="lead">Ravin Pillay defends people facing criminal charges in Toronto and across the GTA. He protects your rights, your freedom and your future, from the bail hearing to the final verdict.</p>
         <div class="hero-actions">
           <a class="btn btn-gold" href="#contact">Book a Consultation</a>
-          <a class="btn btn-ghost" href="#practice">Areas of Practice</a>
+          <a class="btn btn-ghost" href="tel:+14160000000">Call [416-000-0000]</a>
         </div>
+        <ul class="hero-rights">
+          <li>Presumed innocent</li>
+          <li>Right to remain silent</li>
+          <li>Right to counsel</li>
+        </ul>
       </div>
     </section>
 
-    <!-- Practice areas: edit the cards below to match the firm's actual practice. -->
+    <!-- Charges: edit the cards below to match the offences Ravin defends. -->
     <section class="practice" id="practice">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow">Practice Areas</p>
-          <h2>How we can help</h2>
-          <p>Focused legal services, delivered with care and attention to detail.</p>
+          <p class="eyebrow">Criminal Charges</p>
+          <h2>Charges we defend</h2>
+          <p>Every charge is serious when it's your name on the paperwork. Each case gets a careful, independent defence.</p>
         </div>
         <div class="grid">
           <article class="card">
-            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></div>
-            <h3>Real Estate</h3>
-            <p>Residential purchases, sales and refinancing, handled smoothly from agreement to closing day.</p>
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/></svg></div>
+            <h3>Assault &amp; Domestic Assault</h3>
+            <p>Simple assault, assault causing bodily harm and domestic charges, including bail conditions and no-contact orders.</p>
           </article>
           <article class="card">
-            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div>
-            <h3>Wills &amp; Estates</h3>
-            <p>Wills, powers of attorney and estate administration that protect the people who matter most.</p>
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 16l1.5-5h11l1.5 5M4 16h16v3H4zM7 19v2M17 19v2"/><circle cx="8" cy="16.5" r=".5"/><circle cx="16" cy="16.5" r=".5"/></svg></div>
+            <h3>Impaired Driving</h3>
+            <p>Impaired operation, over 80 and refusal charges, where your licence, job and record are on the line.</p>
           </article>
           <article class="card">
-            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M8 7V4h8v3M3 12h18"/></svg></div>
-            <h3>Business Law</h3>
-            <p>Incorporations, contracts and ongoing counsel for owners building and growing their companies.</p>
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="9" width="16" height="6" rx="3" transform="rotate(-35 12 12)"/><path d="M9.5 8.5l5 7"/></svg></div>
+            <h3>Drug Offences</h3>
+            <p>Possession, possession for the purpose of trafficking, and trafficking charges, including Charter search issues.</p>
           </article>
           <article class="card">
-            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg></div>
-            <h3>Civil Litigation</h3>
-            <p>Measured, determined representation in disputes — in negotiation and, when needed, in court.</p>
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="1"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+            <h3>Theft &amp; Fraud</h3>
+            <p>Shoplifting, theft, fraud and breach of trust allegations, handled with discretion.</p>
           </article>
           <article class="card">
-            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.8 6 5.5"/></svg></div>
-            <h3>Family Law</h3>
-            <p>Separation, support and parenting arrangements approached with sensitivity and resolve.</p>
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg></div>
+            <h3>Weapons Offences</h3>
+            <p>Possession, careless use and weapons-related charges, which can carry serious penalties.</p>
           </article>
           <article class="card">
-            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
-            <h3>Notarial Services</h3>
-            <p>Commissioning and notarizing of documents, declarations and certified true copies.</p>
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3v18M17 3v18M3 7h18M3 17h18"/></svg></div>
+            <h3>Bail Hearings</h3>
+            <p>Fast action to get you released while your case proceeds, with a realistic release plan.</p>
           </article>
         </div>
       </div>
@@ -318,13 +350,13 @@
         <div class="portrait" aria-hidden="true">RP</div>
         <div>
           <p class="eyebrow">About Ravin</p>
-          <h2>A Toronto lawyer who takes your matter personally.</h2>
-          <p>Ravin Pillay is a lawyer licensed by the Law Society of Ontario, serving clients throughout Toronto and the GTA. His practice is built on a simple idea: clients deserve a lawyer who listens carefully, explains their options in plain language, and stays with them from the first conversation to the final result.</p>
-          <p>When you work with Ravin Pillay Law, you work directly with Ravin — not a rotating cast of staff. That means fewer surprises, faster answers, and advice that reflects the full picture of your situation.</p>
+          <h2>A defence lawyer who stands beside you.</h2>
+          <p>Ravin Pillay is a Toronto criminal defence lawyer licensed by the Law Society of Ontario. He works from an office on Queens Quay, on Toronto's waterfront, and represents people charged with offences across the city and the GTA.</p>
+          <p>Being charged is frightening, but a charge is not a conviction. Ravin examines the evidence, challenges what the Crown must prove, and makes sure your Charter rights are respected. You work with him directly from your first call to the end of your case.</p>
           <div class="facts">
-            <div class="fact"><strong>Toronto</strong><span>Serving the GTA</span></div>
+            <div class="fact"><strong>Queens Quay</strong><span>Toronto waterfront office</span></div>
             <div class="fact"><strong>Direct</strong><span>Work with Ravin himself</span></div>
-            <div class="fact"><strong>Clear</strong><span>Upfront, plain-language fees</span></div>
+            <div class="fact"><strong>Confidential</strong><span>Your consultation stays private</span></div>
           </div>
         </div>
       </div>
@@ -333,34 +365,36 @@
     <section id="approach">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow">Our Approach</p>
-          <h2>What to expect</h2>
-          <p>Legal matters are stressful enough. The process of working with your lawyer shouldn't be.</p>
+          <p class="eyebrow">How It Works</p>
+          <h2>From charge to resolution</h2>
+          <p>Knowing what comes next makes a hard time easier. Here is how we approach your case.</p>
         </div>
         <div class="steps">
           <div class="step">
-            <h3>Consultation</h3>
-            <p>We start by listening. Tell us what's happening and what you want to achieve, and we'll outline your options.</p>
+            <h3>Protect your rights</h3>
+            <p>We advise you right away on what to say, what not to say, and what your bail and release conditions mean.</p>
           </div>
           <div class="step">
-            <h3>A clear plan</h3>
-            <p>You'll receive a straightforward plan with next steps, timelines and fees explained before any work begins.</p>
+            <h3>Examine the evidence</h3>
+            <p>We review the Crown's disclosure closely, looking for weaknesses, Charter breaches and gaps in the case.</p>
           </div>
           <div class="step">
-            <h3>Results &amp; follow-through</h3>
-            <p>We keep you informed at every stage and see your matter through to a resolution you understand.</p>
+            <h3>Fight for the best outcome</h3>
+            <p>Whether that means a withdrawal, diversion, a negotiated resolution or a trial, we pursue the result that protects your future.</p>
           </div>
         </div>
       </div>
     </section>
 
     <section class="cta">
-      <div class="wrap">
-        <div>
-          <h2>Have a legal question?</h2>
-          <p>Reach out today to arrange a confidential consultation.</p>
+      <div class="wrap stack">
+        <h2>Arrested or under investigation?</h2>
+        <p>Remember your rights, and speak to a lawyer before you speak to anyone else about the case.</p>
+        <div class="rights-grid">
+          <div><h3>Stay silent</h3><p>You have the right to remain silent. Be polite, but don't explain or discuss what happened.</p></div>
+          <div><h3>Ask for a lawyer</h3><p>On arrest or detention, you have the right to speak to a lawyer without delay. Use it.</p></div>
+          <div><h3>Call us</h3><p>The sooner you reach out, the more options you have. <a href="#contact" style="color: var(--gold);">Contact Ravin Pillay Law</a>.</p></div>
         </div>
-        <a class="btn btn-gold" href="#contact">Contact Ravin Pillay Law</a>
       </div>
     </section>
 
@@ -369,12 +403,12 @@
       <div class="wrap contact-grid">
         <div>
           <p class="eyebrow">Contact</p>
-          <h2 style="font-size: clamp(32px, 4vw, 46px);">Let's talk about your matter.</h2>
-          <p style="color: var(--muted);">Send a brief note and we'll respond within one business day to arrange a time to speak.</p>
+          <h2 style="font-size: clamp(32px, 4vw, 46px);">Talk to a defence lawyer.</h2>
+          <p style="color: var(--muted);">Tell us briefly what you've been charged with and your next court date. We'll get back to you quickly to arrange a confidential consultation.</p>
           <ul class="contact-list">
             <li><small>Phone</small><a href="tel:+14160000000">[416-000-0000]</a></li>
             <li><small>Email</small><a href="mailto:info@ravinpillaylaw.ca">[info@ravinpillaylaw.ca]</a></li>
-            <li><small>Office</small>[Street Address]<br>Toronto, ON [Postal Code]</li>
+            <li><small>Office</small>[Number &amp; suite] Queens Quay<br>Toronto, ON [Postal Code]</li>
             <li><small>Hours</small>Monday – Friday, 9:00 am – 5:00 pm<br>Evenings by appointment</li>
           </ul>
         </div>
@@ -384,19 +418,22 @@
             <label>Phone<input name="phone" type="tel" autocomplete="tel"></label>
           </div>
           <label>Email<input name="email" type="email" required autocomplete="email"></label>
-          <label>Area of law
-            <select name="area">
-              <option>Real Estate</option>
-              <option>Wills &amp; Estates</option>
-              <option>Business Law</option>
-              <option>Civil Litigation</option>
-              <option>Family Law</option>
-              <option>Notarial Services</option>
-              <option>Something else</option>
-            </select>
-          </label>
-          <label>How can we help?<textarea name="message" required></textarea></label>
-          <button class="btn btn-gold" type="submit">Send Message</button>
+          <div class="row">
+            <label>Type of charge
+              <select name="area">
+                <option>Assault / Domestic Assault</option>
+                <option>Impaired Driving</option>
+                <option>Drug Offence</option>
+                <option>Theft / Fraud</option>
+                <option>Weapons Offence</option>
+                <option>Bail Hearing</option>
+                <option>Something else</option>
+              </select>
+            </label>
+            <label>Next court date<input name="court" type="date"></label>
+          </div>
+          <label>How can we help?<textarea name="message" required placeholder="A short summary is enough. Please don't describe the details of what happened."></textarea></label>
+          <button class="btn btn-gold" type="submit">Request a Consultation</button>
           <p class="form-note">Please don't include confidential details. Contacting us does not create a lawyer–client relationship.</p>
         </form>
       </div>
@@ -408,13 +445,13 @@
       <div class="footer-top">
         <span class="brand-name">Ravin Pillay Law</span>
         <nav>
-          <a href="#practice">Practice Areas</a>
+          <a href="#practice">Charges</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
         </nav>
       </div>
       <p class="disclaimer">The information on this website is for general information only and is not legal advice. Viewing this site or contacting the firm does not create a lawyer–client relationship.</p>
-      <p>&copy; <span id="year"></span> Ravin Pillay Law. Toronto, Ontario.</p>
+      <p>&copy; <span id="year"></span> Ravin Pillay Law &middot; Criminal Defence &middot; Queens Quay, Toronto, Ontario.</p>
     </div>
   </footer>
 
@@ -437,7 +474,7 @@
       e.preventDefault();
       const f = new FormData(e.target);
       const subject = `Consultation request: ${f.get('area')}`;
-      const body = `Name: ${f.get('name')}\nPhone: ${f.get('phone')}\nEmail: ${f.get('email')}\n\n${f.get('message')}`;
+      const body = `Name: ${f.get('name')}\nPhone: ${f.get('phone')}\nEmail: ${f.get('email')}\nNext court date: ${f.get('court') || 'n/a'}\n\n${f.get('message')}`;
       window.location.href = `mailto:info@ravinpillaylaw.ca?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
   </script>
