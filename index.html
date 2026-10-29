@@ -2506,6 +2506,7 @@
         robe: [3, 1.4], wings: [3.6, 1.8], snake: [4.8, 1], arm: [5.6, 1.1], blindfold: [8.2, 1.3]
       };
       var RAISE = [6.8, 1.3], EYES_OUT = [8.5, .6], END = 10.6;
+      var SPEED = 2.2;                          // playback speed; timings above are at 1x
       var LOWERED = -22;                        // arm angle before it lifts the scales
       var SHOULDER = [250, 605], HAND = [174, 232], FULCRUM = [174, 280];
       var PAN_L = [-122, 8], PAN_R = [122, 8];  // pan hooks relative to the fulcrum
@@ -2574,7 +2575,7 @@
       var start = null;
       function frame(now) {
         if (start === null) start = now;
-        var t = (now - start) / 1000;
+        var t = (now - start) / 1000 * SPEED;
         for (var i = 0; i < items.length; i++) {
           var it = items[i];
           if (it.done || t < it.t0) continue;
