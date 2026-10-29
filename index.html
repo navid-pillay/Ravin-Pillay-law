@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ravin Pillay Law | Toronto Lawyer</title>
+  <meta name="description" content="Ravin Pillay Law — practical, personal legal counsel in Toronto, Ontario.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #14213d;
+      --ink-soft: #2b3a5c;
+      --paper: #faf8f4;
+      --paper-alt: #f1ede4;
+      --text: #1f2430;
+      --muted: #5c6270;
+      --gold: #b08d57;
+      --gold-dark: #8c6d3f;
+      --line: #e2dccf;
+      --radius: 6px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--text);
+      font: 400 17px/1.65 "Inter", system-ui, sans-serif;
+    }
+    h1, h2, h3 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-weight: 600;
+      line-height: 1.15;
+      margin: 0 0 .5em;
+      color: var(--ink);
+    }
+    a { color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin: 0 0 12px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 26px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .btn-gold { background: var(--gold); color: #fff; }
+    .btn-gold:hover { background: var(--gold-dark); }
+    .btn-ghost { border: 1px solid rgba(255,255,255,.45); color: #fff; }
+    .btn-ghost:hover { border-color: #fff; background: rgba(255,255,255,.08); }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(20, 33, 61, .97);
+      backdrop-filter: blur(6px);
+      color: #fff;
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .brand { text-decoration: none; display: flex; align-items: baseline; gap: 10px; }
+    .brand-name { font-family: "Cormorant Garamond", serif; font-size: 26px; font-weight: 700; letter-spacing: .02em; }
+    .brand-tag { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); }
+    .nav-links { display: flex; gap: 32px; align-items: center; list-style: none; margin: 0; padding: 0; }
+    .nav-links a { text-decoration: none; font-size: 15px; color: rgba(255,255,255,.85); }
+    .nav-links a:hover { color: #fff; }
+    .nav-links .btn { padding: 10px 20px; color: #fff; }
+    .menu-toggle { display: none; background: none; border: 0; color: #fff; font-size: 26px; cursor: pointer; }
+
+    /* Hero */
+    .hero {
+      background:
+        linear-gradient(115deg, rgba(20,33,61,.96) 0%, rgba(20,33,61,.88) 55%, rgba(43,58,92,.8) 100%),
+        repeating-linear-gradient(90deg, transparent 0 120px, rgba(255,255,255,.03) 120px 121px);
+      color: #fff;
+      padding: 120px 0 130px;
+    }
+    .hero h1 { color: #fff; font-size: clamp(40px, 6vw, 68px); max-width: 14ch; }
+    .hero h1 em { font-style: italic; color: var(--gold); }
+    .hero p.lead { font-size: 19px; max-width: 56ch; color: rgba(255,255,255,.82); margin: 0 0 36px; }
+    .hero .eyebrow { color: var(--gold); }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    /* Sections */
+    section { padding: 96px 0; }
+    .section-head { max-width: 640px; margin-bottom: 52px; }
+    .section-head h2 { font-size: clamp(32px, 4vw, 46px); }
+    .section-head p { color: var(--muted); margin: 0; }
+
+    /* Practice areas */
+    .practice { background: var(--paper); }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(20,33,61,.08); border-color: var(--gold); }
+    .card .icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--paper-alt);
+      color: var(--gold-dark);
+      display: grid; place-items: center;
+      margin-bottom: 18px;
+    }
+    .card h3 { font-size: 26px; }
+    .card p { margin: 0; color: var(--muted); font-size: 16px; }
+
+    /* About */
+    .about { background: var(--paper-alt); }
+    .about-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: center; }
+    .portrait {
+      aspect-ratio: 4 / 5;
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, var(--ink-soft), var(--ink));
+      display: grid; place-items: center;
+      color: var(--gold);
+      font-family: "Cormorant Garamond", serif;
+      font-size: 96px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      position: relative;
+    }
+    .portrait::after {
+      content: "";
+      position: absolute; inset: 16px;
+      border: 1px solid rgba(176,141,87,.45);
+      border-radius: 3px;
+    }
+    .about h2 { font-size: clamp(32px, 4vw, 46px); }
+    .about p { color: var(--muted); }
+    .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+    .fact strong { display: block; font-family: "Cormorant Garamond", serif; font-size: 22px; color: var(--ink); }
+    .fact span { font-size: 14px; color: var(--muted); }
+
+    /* Approach */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; counter-reset: step; }
+    .step { border-top: 2px solid var(--gold); padding-top: 24px; }
+    .step::before {
+      counter-increment: step;
+      content: "0" counter(step);
+      font-family: "Cormorant Garamond", serif;
+      font-size: 40px;
+      color: var(--gold);
+      display: block;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .step h3 { font-size: 26px; }
+    .step p { margin: 0; color: var(--muted); }
+
+    /* CTA band */
+    .cta { background: var(--ink); color: #fff; padding: 72px 0; }
+    .cta .wrap { display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+    .cta h2 { color: #fff; font-size: clamp(28px, 3.5vw, 40px); margin: 0 0 6px; }
+    .cta p { margin: 0; color: rgba(255,255,255,.75); }
+
+    /* Contact */
+    .contact-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; }
+    .contact-list { list-style: none; padding: 0; margin: 28px 0 0; }
+    .contact-list li { padding: 18px 0; border-bottom: 1px solid var(--line); }
+    .contact-list small { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-dark); font-weight: 600; margin-bottom: 4px; }
+    .contact-list a { text-decoration: none; }
+    .contact-list a:hover { color: var(--gold-dark); }
+    form { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 36px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 18px; }
+    input, select, textarea {
+      width: 100%;
+      margin-top: 6px;
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 16px;
+      color: var(--text);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: var(--gold); }
+    textarea { min-height: 130px; resize: vertical; }
+    form .btn { border: 0; cursor: pointer; width: 100%; }
+    .form-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+
+    /* Footer */
+    footer { background: #0e1730; color: rgba(255,255,255,.65); padding: 48px 0 36px; font-size: 14px; }
+    .footer-top { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 24px; }
+    footer .brand-name { color: #fff; }
+    footer nav a { margin-left: 24px; text-decoration: none; }
+    footer nav a:hover { color: #fff; }
+    .disclaimer { max-width: 80ch; margin: 0 0 12px; font-size: 13px; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .grid, .steps { grid-template-columns: 1fr 1fr; }
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+      .portrait { max-width: 360px; }
+    }
+    @media (max-width: 720px) {
+      body { font-size: 16px; }
+      .wrap { padding: 0 16px; }
+      section { padding: 72px 0; }
+      .hero { padding: 84px 0 92px; }
+      .menu-toggle { display: block; }
+      .nav-links {
+        display: none;
+        position: absolute; top: 72px; left: 0; right: 0;
+        flex-direction: column; gap: 0;
+        background: var(--ink);
+        padding: 8px 16px 20px;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links li { width: 100%; }
+      .nav-links a { display: block; padding: 12px 0; }
+      .nav-links .btn { text-align: center; margin-top: 8px; }
+      .brand-tag { display: none; }
+      .grid, .steps, .row, .facts { grid-template-columns: 1fr; }
+      form { padding: 24px; }
+      footer nav a { margin: 0 20px 0 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#top">
+        <span class="brand-name">Ravin Pillay</span>
+        <span class="brand-tag">Law</span>
+      </a>
+      <button class="menu-toggle" aria-label="Open menu" aria-expanded="false">&#9776;</button>
+      <ul class="nav-links">
+        <li><a href="#practice">Practice Areas</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#approach">Approach</a></li>
+        <li><a class="btn btn-gold" href="#contact">Book a Consultation</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Toronto, Ontario</p>
+        <h1>Clear advice. <em>Steady</em> advocacy.</h1>
+        <p class="lead">Ravin Pillay Law provides practical, personal legal counsel to individuals, families and businesses across the Greater Toronto Area — with straight answers and a lawyer who knows your file.</p>
+        <div class="hero-actions">
+          <a class="btn btn-gold" href="#contact">Book a Consultation</a>
+          <a class="btn btn-ghost" href="#practice">Areas of Practice</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Practice areas: edit the cards below to match the firm's actual practice. -->
+    <section class="practice" id="practice">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Practice Areas</p>
+          <h2>How we can help</h2>
+          <p>Focused legal services, delivered with care and attention to detail.</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></div>
+            <h3>Real Estate</h3>
+            <p>Residential purchases, sales and refinancing, handled smoothly from agreement to closing day.</p>
+          </article>
+          <article class="card">
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div>
+            <h3>Wills &amp; Estates</h3>
+            <p>Wills, powers of attorney and estate administration that protect the people who matter most.</p>
+          </article>
+          <article class="card">
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M8 7V4h8v3M3 12h18"/></svg></div>
+            <h3>Business Law</h3>
+            <p>Incorporations, contracts and ongoing counsel for owners building and growing their companies.</p>
+          </article>
+          <article class="card">
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg></div>
+            <h3>Civil Litigation</h3>
+            <p>Measured, determined representation in disputes — in negotiation and, when needed, in court.</p>
+          </article>
+          <article class="card">
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.8 6 5.5"/></svg></div>
+            <h3>Family Law</h3>
+            <p>Separation, support and parenting arrangements approached with sensitivity and resolve.</p>
+          </article>
+          <article class="card">
+            <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <h3>Notarial Services</h3>
+            <p>Commissioning and notarizing of documents, declarations and certified true copies.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="about" id="about">
+      <div class="wrap about-grid">
+        <!-- Replace this monogram with a photo: <img src="ravin.jpg" alt="Ravin Pillay"> -->
+        <div class="portrait" aria-hidden="true">RP</div>
+        <div>
+          <p class="eyebrow">About Ravin</p>
+          <h2>A Toronto lawyer who takes your matter personally.</h2>
+          <p>Ravin Pillay is a lawyer licensed by the Law Society of Ontario, serving clients throughout Toronto and the GTA. His practice is built on a simple idea: clients deserve a lawyer who listens carefully, explains their options in plain language, and stays with them from the first conversation to the final result.</p>
+          <p>When you work with Ravin Pillay Law, you work directly with Ravin — not a rotating cast of staff. That means fewer surprises, faster answers, and advice that reflects the full picture of your situation.</p>
+          <div class="facts">
+            <div class="fact"><strong>Toronto</strong><span>Serving the GTA</span></div>
+            <div class="fact"><strong>Direct</strong><span>Work with Ravin himself</span></div>
+            <div class="fact"><strong>Clear</strong><span>Upfront, plain-language fees</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="approach">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Our Approach</p>
+          <h2>What to expect</h2>
+          <p>Legal matters are stressful enough. The process of working with your lawyer shouldn't be.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <h3>Consultation</h3>
+            <p>We start by listening. Tell us what's happening and what you want to achieve, and we'll outline your options.</p>
+          </div>
+          <div class="step">
+            <h3>A clear plan</h3>
+            <p>You'll receive a straightforward plan with next steps, timelines and fees explained before any work begins.</p>
+          </div>
+          <div class="step">
+            <h3>Results &amp; follow-through</h3>
+            <p>We keep you informed at every stage and see your matter through to a resolution you understand.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap">
+        <div>
+          <h2>Have a legal question?</h2>
+          <p>Reach out today to arrange a confidential consultation.</p>
+        </div>
+        <a class="btn btn-gold" href="#contact">Contact Ravin Pillay Law</a>
+      </div>
+    </section>
+
+    <!-- Contact: replace the bracketed placeholders with real details. -->
+    <section id="contact">
+      <div class="wrap contact-grid">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2 style="font-size: clamp(32px, 4vw, 46px);">Let's talk about your matter.</h2>
+          <p style="color: var(--muted);">Send a brief note and we'll respond within one business day to arrange a time to speak.</p>
+          <ul class="contact-list">
+            <li><small>Phone</small><a href="tel:+14160000000">[416-000-0000]</a></li>
+            <li><small>Email</small><a href="mailto:info@ravinpillaylaw.ca">[info@ravinpillaylaw.ca]</a></li>
+            <li><small>Office</small>[Street Address]<br>Toronto, ON [Postal Code]</li>
+            <li><small>Hours</small>Monday – Friday, 9:00 am – 5:00 pm<br>Evenings by appointment</li>
+          </ul>
+        </div>
+        <form id="contact-form">
+          <div class="row">
+            <label>Name<input name="name" required autocomplete="name"></label>
+            <label>Phone<input name="phone" type="tel" autocomplete="tel"></label>
+          </div>
+          <label>Email<input name="email" type="email" required autocomplete="email"></label>
+          <label>Area of law
+            <select name="area">
+              <option>Real Estate</option>
+              <option>Wills &amp; Estates</option>
+              <option>Business Law</option>
+              <option>Civil Litigation</option>
+              <option>Family Law</option>
+              <option>Notarial Services</option>
+              <option>Something else</option>
+            </select>
+          </label>
+          <label>How can we help?<textarea name="message" required></textarea></label>
+          <button class="btn btn-gold" type="submit">Send Message</button>
+          <p class="form-note">Please don't include confidential details. Contacting us does not create a lawyer–client relationship.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-top">
+        <span class="brand-name">Ravin Pillay Law</span>
+        <nav>
+          <a href="#practice">Practice Areas</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </div>
+      <p class="disclaimer">The information on this website is for general information only and is not legal advice. Viewing this site or contacting the firm does not create a lawyer–client relationship.</p>
+      <p>&copy; <span id="year"></span> Ravin Pillay Law. Toronto, Ontario.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const toggle = document.querySelector('.menu-toggle');
+    const links = document.querySelector('.nav-links');
+    toggle.addEventListener('click', () => {
+      const open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open);
+    });
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      links.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }));
+
+    // No backend yet: open the visitor's email client with the message pre-filled.
+    document.getElementById('contact-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const subject = `Consultation request: ${f.get('area')}`;
+      const body = `Name: ${f.get('name')}\nPhone: ${f.get('phone')}\nEmail: ${f.get('email')}\n\n${f.get('message')}`;
+      window.location.href = `mailto:info@ravinpillaylaw.ca?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    });
+  </script>
+</body>
+</html>
