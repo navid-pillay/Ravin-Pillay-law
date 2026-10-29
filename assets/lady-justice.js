@@ -67,7 +67,9 @@
   }
 
   // ---- strokes and their schedule
-  var strokes = [], perPart = {};
+  // Parts below the opening view are drawn as the visitor scrolls instead.
+  var LOWER_PARTS = { skirt: 1, feet: 1, pedestal: 1, serpent: 1 };
+  var strokes = [], lowerStrokes = [], perPart = {};
   D.strokes.forEach(function (r) {
     var part = D.parts[r[0]];
     (perPart[part] = perPart[part] || []).push(r);
@@ -75,22 +77,35 @@
   Object.keys(perPart).forEach(function (part) {
     var rows = perPart[part], win = T[part];
     rows.forEach(function (r, i) {
-      var rig = D.rigs[r[1]] || null, pts = decode(r[7]), w = r[3] / 10;
-      var s = {
-        part: part, rig: rig, op: r[2] / 100, w: w, trace: !!r[6],
-        fill: ribbon(pts, w, r[4] / 100, r[5] / 100),
-        color: part === 'blindfold' || GOLD_RIGS[rig] ? D.gold : D.ink,
-        t0: win[0] + win[1] * .85 * i / rows.length, dur: .14, state: 0
-      };
-      if (s.trace) {
-        var pl = polyline(pts);
-        s.line = pl.path;
-        s.len = pl.len;
-        s.dur = Math.min(.28, Math.max(.08, .06 + pl.len / 3000));
+      var s = makeStroke(r, part);
+      if (LOWER_PARTS[part]) {
+        // the serpent at her feet is the last thing drawn, once the visitor reaches the bottom
+        s.y = part === 'serpent' ? D.lower[1] + 1 : s.ymin;
+        lowerStrokes.push(s);
+      } else {
+        s.t0 = win[0] + win[1] * .85 * i / rows.length;
+        strokes.push(s);
       }
-      strokes.push(s);
     });
   });
+
+  function makeStroke(r, part) {
+    var rig = D.rigs[r[1]] || null, pts = decode(r[7]), w = r[3] / 10;
+    var s = {
+      part: part, rig: rig, op: r[2] / 100, w: w, trace: !!r[6],
+      fill: ribbon(pts, w, r[4] / 100, r[5] / 100),
+      color: part === 'blindfold' || GOLD_RIGS[rig] ? D.gold : D.ink,
+      dur: .14, state: 0,
+      ymin: pts.reduce(function (m, p) { return Math.min(m, p[1]); }, Infinity)
+    };
+    if (s.trace) {
+      var pl = polyline(pts);
+      s.line = pl.path;
+      s.len = pl.len;
+      s.dur = Math.min(.28, Math.max(.08, .06 + pl.len / 3000));
+    }
+    return s;
+  }
 
   var masks = D.masks.map(function (m) {
     var pts = decode(m[1]), p = new Path2D();
@@ -266,9 +281,102 @@
     requestAnimationFrame(frame);
   }
 
+  // ---- the rest of the statue, drawn as the visitor scrolls down
+  var section = document.querySelector('[data-lady-justice-lower]');
+  var layoutLower = function () {};
+  if (section && lowerStrokes.length) {
+    var done = document.createElement('canvas'), liveCanvas = document.createElement('canvas');
+    done.className = liveCanvas.className = 'art-canvas';
+    done.setAttribute('aria-hidden', 'true');
+    liveCanvas.setAttribute('aria-hidden', 'true');
+    section.insertBefore(liveCanvas, section.firstChild);
+    section.insertBefore(done, liveCanvas);
+    var inscription = section.querySelector('[data-inscription]');
+    var dctx = done.getContext('2d'), lctx = liveCanvas.getContext('2d');
+    var queue = lowerStrokes.slice().sort(function (a, b) { return a.y - b.y; });
+    var next = 0, active = [], lastStart = 0, reached = -Infinity, running = false, kk = 1, LV;
+    var serpentLeft = lowerStrokes.filter(function (s) { return s.part === 'serpent'; }).length;
+
+    layoutLower = function () {
+      // line up exactly with the opening drawing: same scale, same left edge
+      var art = host.getBoundingClientRect(), sec = section.getBoundingClientRect();
+      kk = art.height / box[3];
+      var w = art.width, h = (D.lower[1] - D.lower[0]) * kk;
+      var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      section.style.height = Math.ceil(h) + 'px';
+      [done, liveCanvas].forEach(function (c) {
+        c.style.left = (art.left - sec.left) + 'px';
+        c.style.width = w + 'px';
+        c.style.height = h + 'px';
+        c.width = Math.round(w * dpr);
+        c.height = Math.round(h * dpr);
+      });
+      var u = kk * dpr;
+      LV = new DOMMatrix([u, 0, 0, u, -box[0] * u, -D.lower[0] * u]);
+      if (inscription) {
+        var P = D.panel;
+        inscription.classList.add('placed');
+        inscription.style.left = (art.left - sec.left + (P[0] - box[0]) * kk) + 'px';
+        inscription.style.top = (P[1] - D.lower[0]) * kk + 'px';
+        inscription.style.width = (P[2] - P[0]) * kk + 'px';
+        inscription.style.height = (P[3] - P[1]) * kk + 'px';
+        inscription.style.fontSize = Math.max(11, Math.min(21, kk * 19)) + 'px';
+      }
+      apply(dctx, LV);
+      lowerStrokes.forEach(function (s) { if (s.state === 2) paint(dctx, s); });
+    };
+
+    var paint = function (c, s) { c.globalAlpha = s.op; c.fillStyle = s.color; c.fill(s.fill); };
+
+    var revealY = function () {
+      var doc = document.documentElement;
+      if (window.innerHeight + window.scrollY >= doc.scrollHeight - 4) return Infinity;
+      return D.lower[0] + (window.innerHeight * .9 - section.getBoundingClientRect().top) / kk;
+    };
+
+    var finishStroke = function (s) {
+      s.state = 2;
+      paint(dctx, s);
+      if (s.part === 'serpent' && --serpentLeft === 0 && inscription) inscription.classList.add('shown');
+    };
+
+    var tick = function (now) {
+      var t = now / 1000;
+      reached = Math.max(reached, revealY());
+      while (next < queue.length && queue[next].y <= reached) {
+        var s = queue[next++];
+        s.t0 = Math.max(t, lastStart + .0015);
+        lastStart = s.t0;
+        active.push(s);
+      }
+      apply(lctx, new DOMMatrix());
+      lctx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
+      apply(dctx, LV);
+      apply(lctx, LV);
+      active = active.filter(function (s) {
+        var p = (t - s.t0) / s.dur;
+        if (p < 0) return true;
+        if (p >= 1) { finishStroke(s); return false; }
+        drawLive(lctx, s, s.trace ? ease(p) : p);
+        return true;
+      });
+      if (active.length) requestAnimationFrame(tick); else running = false;
+    };
+    var wake = function () { if (!running) { running = true; requestAnimationFrame(tick); } };
+
+    layoutLower();
+    if (reduce) {
+      apply(dctx, LV);
+      lowerStrokes.forEach(finishStroke);
+    } else {
+      window.addEventListener('scroll', wake, { passive: true });
+      wake();
+    }
+  }
+
   var timer;
   window.addEventListener('resize', function () {
     clearTimeout(timer);
-    timer = setTimeout(function () { resize(); render(Infinity, []); }, 120);
+    timer = setTimeout(function () { resize(); render(Infinity, []); layoutLower(); }, 120);
   });
 })();

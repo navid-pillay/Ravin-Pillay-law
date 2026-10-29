@@ -197,6 +197,120 @@ def wing(mirror):
                 p1 = at(min(1, s + 0.06), -0.9)
                 stroke([mx(p0), mx(p1)], 0.6, op * 0.45, passes=1, wob=0)
 
+# ---------------------------------------------------------------- serpent body
+def tube(center, w0, w1, op=1.0, scales=True):
+    C = resample(center, 60)
+    L, R = [], []
+    for i, p in enumerate(C):
+        a, b = C[max(i - 1, 0)], C[min(i + 1, len(C) - 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        l = math.hypot(dx, dy) or 1
+        nx, ny = -dy / l, dx / l
+        w = (w0 + (w1 - w0) * i / (len(C) - 1)) / 2
+        L.append((p[0] + nx * w, p[1] + ny * w))
+        R.append((p[0] - nx * w, p[1] - ny * w))
+    stroke(L[::2], 1.8, op, passes=2)
+    stroke(R[::2], 1.8, op, passes=2)
+    mask_add(L + R[::-1])
+    if scales:
+        for i in range(2, len(C) - 2, 2):
+            for f in (0.25, 0.75):
+                p = lerp(L[i], R[i], f)
+                q = lerp(L[i + 2], R[i + 2], f)
+                stroke([lerp(p, L[i], 0.15), lerp(p, q, 0.7), lerp(p, R[i], 0.15)], 0.6, 0.5, passes=1, wob=0)
+    hatch(R[::3] + [lerp(L[i], R[i], 0.45) for i in range(len(C) - 1, -1, -3)], 70, 3.2, 0.55, 0.5)
+
+# ---------------------------------------------------------------- lower statue
+# Drawn on scroll below the opening view: the rest of the robe, her feet,
+# the pedestal (with a panel for the inscription) and a serpent at her feet.
+LOWER = (1000, 2740)            # y-range of the scroll-drawn part
+PANEL = (236, 2486, 764, 2652)  # pedestal panel that carries the inscription
+
+def lower():
+    part("skirt")
+    left = [(296, 1000), (302, 1200), (296, 1500), (278, 1800), (252, 2100), (226, 2335)]
+    right = [(720, 1000), (712, 1200), (722, 1500), (742, 1800), (764, 2100), (782, 2335)]
+    stroke(left, 2.2, 1.0, passes=3)
+    stroke(right, 2.4, 1.0, passes=3)
+    hem = [(226, 2335), (290, 2356), (350, 2338), (420, 2360), (480, 2342), (560, 2362), (640, 2342), (710, 2358), (782, 2335)]
+    stroke(hem, 2.2, 1.0, passes=3)
+    # girdle cord tied at the waist, ends hanging
+    stroke([(298, 1052), (380, 1078), (470, 1090), (560, 1084), (650, 1070), (716, 1060)], 1.8, 0.95)
+    stroke([(298, 1062), (380, 1088), (470, 1100), (560, 1094), (650, 1080), (716, 1070)], 1.2, 0.7, passes=1)
+    stroke(ellipse_pts(472, 1100, 12, 9, 0, 360, n=14), 1.6, 1.0)
+    stroke([(466, 1108), (460, 1170), (468, 1240), (462, 1300)], 1.4, 0.9)
+    stroke([(478, 1108), (488, 1180), (482, 1250), (492, 1320)], 1.4, 0.9)
+    # overfold: drapery falling from the girdle to a curved, rippled edge across the hips
+    over = [(300, 1360), (340, 1392), (372, 1380), (410, 1420), (450, 1408), (500, 1448), (550, 1438),
+            (600, 1480), (648, 1470), (690, 1506), (718, 1500)]
+    stroke(over, 2.0, 1.0, passes=3)
+    for (x, y) in over[1:-1]:
+        top = (x + (500 - x) * 0.08, 1110)
+        stroke([top, ((top[0] + x) / 2 + 6, (1110 + y) / 2), (x, y - 4)], 1.1, 0.7, passes=1, wob=1.2)
+    hatch([(300, 1110), (716, 1110), (718, 1500), (690, 1506), (300, 1360)], 75, 9, 0.5, 0.25)
+    hatch([(300, 1360), (340, 1392), (718, 1500), (720, 1530), (300, 1395)], 20, 3.5, 0.6, 0.5)  # shadow under the overfold
+    # long folds of the under-robe, fanning slightly towards the hem
+    for x in (320, 362, 404, 446, 488, 530, 572, 614, 656, 698):
+        y0 = 1380 + (x - 300) * 0.3
+        bow = random.uniform(-10, 10)
+        pts = [(x + random.uniform(-3, 3), y0 + 20), (x + bow, 1700), (x + bow * 0.4 + (x - 500) * 0.06, 2000),
+               (x + (x - 500) * 0.12, 2200), (x + (x - 500) * 0.16, 2338)]
+        stroke(pts, random.uniform(1.1, 1.6), 0.8, passes=2, wob=1.4)
+        hatch([(p[0] + 2, p[1]) for p in pts] + [(p[0] + 12, p[1]) for p in pts[::-1]], 70, 4.5, 0.55, 0.36)
+    hatch([(660, 1520), (722, 1500), (742, 1800), (782, 2335), (736, 2345), (700, 1800)], 62, 5.5, 0.7, 0.5)
+    hatch([(296, 1400), (328, 1410), (310, 1800), (270, 2335), (230, 2335), (276, 1800)], 115, 7, 0.55, 0.3)
+
+    part("feet")
+    stroke([(572, 2352), (582, 2374), (612, 2386), (648, 2384), (664, 2370), (660, 2356)], 1.8, 1.0)
+    for x in (620, 634, 646):
+        stroke([(x, 2372), (x + 4, 2384)], 0.8, 0.6, passes=1, wob=0)
+    stroke([(360, 2346), (364, 2370), (392, 2380), (418, 2374), (424, 2356)], 1.6, 0.9)
+    hatch([(574, 2356), (660, 2358), (660, 2372), (590, 2376)], 20, 3, 0.5, 0.45)
+
+    part("pedestal")
+    x0, x1, ytop = 150, 850, 2392
+    stroke([(176, 2364), (500, 2360), (824, 2364)], 1.4, 0.7)              # back edge of the top
+    stroke([(x0, ytop), (500, ytop + 2), (x1, ytop)], 2.4, 1.0, passes=3)   # front edge
+    stroke([(176, 2364), (x0, ytop)], 1.4, 0.8)
+    stroke([(824, 2364), (x1, ytop)], 1.4, 0.8)
+    stroke([(x0, ytop), (x0, 2434)], 2.0, 1.0)
+    stroke([(x1, ytop), (x1, 2434)], 2.0, 1.0)
+    stroke([(x0, 2434), (x1, 2434)], 2.2, 1.0, passes=2)                    # cap
+    stroke([(170, 2446), (830, 2446)], 1.2, 0.7)
+    stroke([(196, 2458), (804, 2458)], 1.8, 0.95)
+    stroke([(204, 2458), (204, 2668)], 2.2, 1.0, passes=2)                  # die
+    stroke([(796, 2458), (796, 2668)], 2.2, 1.0, passes=2)
+    px0, py0, px1, py1 = PANEL
+    for i in (0, 8):  # engraved double frame, one straight stroke per edge
+        q0, q1, r0, r1 = px0 + i, px1 - i, py0 + i, py1 - i
+        for e in (((q0, r0), (q1, r0)), ((q1, r0), (q1, r1)), ((q1, r1), (q0, r1)), ((q0, r1), (q0, r0))):
+            stroke(list(e), 1.1 if not i else 0.7, 0.75 if not i else 0.4, passes=2 if not i else 1, wob=0.3, taper=(0.05, 0.05))
+    stroke([(186, 2668), (814, 2668)], 2.0, 1.0, passes=2)                  # base mouldings
+    stroke([(170, 2684), (830, 2684)], 1.4, 0.8)
+    stroke([(150, 2708), (850, 2708)], 2.4, 1.0, passes=3)
+    stroke([(186, 2668), (170, 2684), (150, 2708)], 1.4, 0.8)
+    stroke([(814, 2668), (830, 2684), (850, 2708)], 1.4, 0.8)
+    hatch([(770, 2392), (850, 2392), (850, 2434), (770, 2434)], 60, 4, 0.6, 0.45)
+    hatch([(204, 2460), (796, 2460), (796, 2482), (204, 2482)], 15, 4, 0.5, 0.35)  # shadow under the cap
+    hatch([(740, 2460), (796, 2460), (796, 2668), (740, 2668)], 65, 4.5, 0.65, 0.5)
+    hatch([(796, 2668), (850, 2708), (790, 2708)], 60, 4, 0.55, 0.45)
+    hatch([(176, 2366), (824, 2366), (850, 2390), (150, 2390)], 2, 5, 0.45, 0.25)  # top surface
+
+    part("serpent")
+    # a large serpent coiled on the pedestal in front of her feet, rearing up and looking out
+    for cy, rx, w in ((2386, 128, 26), (2364, 100, 24)):
+        tube(ellipse_pts(400, cy, rx, 16, 200, 520, 0, 44), w, w)
+    tube([(286, 2372), (238, 2350), (206, 2300), (214, 2240), (196, 2190), (166, 2164)], 24, 18)
+    tube([(500, 2392), (560, 2398), (610, 2392), (640, 2380)], 22, 4)
+    head = [(170, 2150), (148, 2144), (120, 2150), (102, 2162), (108, 2176), (138, 2184), (170, 2180)]
+    stroke(head, 2.2, 1.0, passes=3)
+    stroke([(156, 2152), (134, 2156), (116, 2164)], 1.0, 0.6, passes=1)
+    stroke(ellipse_pts(138, 2162, 5, 3.6, 0, 360, n=12), 1.6, 1.0, passes=1)
+    stroke([(102, 2168), (78, 2170), (66, 2162)], 1.1, 0.9, passes=1, wob=0)
+    stroke([(78, 2170), (66, 2178)], 1.1, 0.9, passes=1, wob=0)
+    hatch([(108, 2174), (170, 2172), (170, 2182), (138, 2185)], 10, 2.5, 0.55, 0.6)
+
+
 # ---------------------------------------------------------------- figure
 def figure():
     part("hair")
@@ -358,28 +472,6 @@ def figure():
 
     part("snake")
     # --- serpent coiled around the neck, head resting on her shoulder
-    def tube(center, w0, w1, op=1.0, scales=True):
-        C = resample(center, 60)
-        L, R = [], []
-        for i, p in enumerate(C):
-            a, b = C[max(i - 1, 0)], C[min(i + 1, len(C) - 1)]
-            dx, dy = b[0] - a[0], b[1] - a[1]
-            l = math.hypot(dx, dy) or 1
-            nx, ny = -dy / l, dx / l
-            w = (w0 + (w1 - w0) * i / (len(C) - 1)) / 2
-            L.append((p[0] + nx * w, p[1] + ny * w))
-            R.append((p[0] - nx * w, p[1] - ny * w))
-        stroke(L[::2], 1.8, op, passes=2)
-        stroke(R[::2], 1.8, op, passes=2)
-        mask_add(L + R[::-1])
-        if scales:
-            for i in range(2, len(C) - 2, 2):
-                for f in (0.25, 0.75):
-                    p = lerp(L[i], R[i], f)
-                    q = lerp(L[i + 2], R[i + 2], f)
-                    stroke([lerp(p, L[i], 0.15), lerp(p, q, 0.7), lerp(p, R[i], 0.15)], 0.6, 0.5, passes=1, wob=0)
-        hatch(R[::3] + [lerp(L[i], R[i], 0.45) for i in range(len(C) - 1, -1, -3)], 70, 3.2, 0.55, 0.5)
-
     tube([(394, 448), (420, 462), (462, 468), (502, 462), (532, 448)], 18, 18)
     tube([(390, 484), (422, 500), (464, 507), (506, 500), (538, 486)], 20, 19)
     tube([(538, 486), (560, 505), (566, 545), (548, 585), (520, 615), (512, 650), (520, 680)], 19, 4)
@@ -403,6 +495,7 @@ part("wings")
 wing(False)
 wing(True)
 figure()
+lower()
 
 def pts_d(pts):
     return "M" + "L".join(f"{x:.0f},{y:.0f}" for x, y in pts)
@@ -448,7 +541,8 @@ open(sys.argv[1], "w").write('<?xml version="1.0" encoding="UTF-8"?>\n' + svg + 
 print("wrote", sys.argv[1], f"{len(svg)/1024:.0f} KB")
 # compact stroke data for the canvas animation (assets/lady-justice-data.js)
 if len(sys.argv) > 2:
-    PARTS = ["wings", "construct", "hair", "face", "eyes", "neck", "robe", "snake", "arm", "blindfold"]
+    PARTS = ["wings", "construct", "hair", "face", "eyes", "neck", "robe", "snake", "arm", "blindfold",
+             "skirt", "feet", "pedestal", "serpent"]
     RIGS = [None, "arm", "scale", "beam", "panL", "panR"]
 
     def enc(pts):
@@ -466,7 +560,7 @@ if len(sys.argv) > 2:
                     f'{round(r["taper"][0] * 100)},{round(r["taper"][1] * 100)},{int(r["trace"])},"{enc(r["line"])}"]')
     masks = [f'[{RIGS.index(rig)},"{enc(catmull(poly, 6))}"]' for poly, rig in MASK]
     js = ("// Generated by tools/lady_justice_sketch.py -- do not edit by hand.\n"
-          f"window.LADY_JUSTICE={{box:[{X0},0,{TW},{H}],ink:\"{INK}\",gold:\"{GOLD}\",\n"
+          f"window.LADY_JUSTICE={{box:[{X0},0,{TW},{H}],lower:[{LOWER[0]},{LOWER[1]}],panel:[{','.join(map(str, PANEL))}],ink:\"{INK}\",gold:\"{GOLD}\",\n"
           f"parts:{PARTS!r},\nrigs:{[x or '' for x in RIGS]!r},\n"
           f"strokes:[\n{','.join(rows)}],\nmasks:[{','.join(masks)}]}};\n").replace("'", '"')
     open(sys.argv[2], "w").write(js)

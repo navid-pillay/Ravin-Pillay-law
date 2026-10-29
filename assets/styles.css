@@ -91,7 +91,8 @@ img { max-width: 100%; display: block; }
   border-radius: 50%;
   background: repeating-conic-gradient(#eef0f2 0deg 2.5deg, #5d636a 2.5deg 5deg);
   box-shadow: 0 8px 16px rgba(0, 0, 0, .65), 0 0 0 1px rgba(0, 0, 0, .8), inset 0 0 0 1px rgba(255, 255, 255, .25);
-  transition: transform .7s cubic-bezier(.25, 1.5, .45, 1), box-shadow .3s;
+  transform: rotate(0deg);
+  transition: transform .55s cubic-bezier(.4, 0, .2, 1), box-shadow .3s;
 }
 .dial::before {
   content: "";
@@ -119,15 +120,33 @@ img { max-width: 100%; display: block; }
   color: var(--muted);
   transition: color .3s;
 }
-.knob:hover .dial, .knob:focus-visible .dial { transform: rotate(75deg); }
-.knob:hover .knob-label, .knob:focus-visible .knob-label { color: var(--text); }
+/* Knobs always turn clockwise to switch on and back anticlockwise to switch off.
+   Hover gives an unselected knob a small clockwise nudge; the selected one stays put. */
+@media (hover: hover) {
+  .knob:hover .dial { transform: rotate(30deg); }
+  .knob:hover .knob-label { color: var(--text); }
+}
+.knob:focus-visible .dial { transform: rotate(30deg); }
+.knob:focus-visible .knob-label { color: var(--text); }
 .knob:focus-visible { outline: none; }
 .knob:focus-visible .dial { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--teal); }
-.knob[aria-current="page"] .dial {
+.knob[aria-current="page"] .dial,
+.knob[aria-current="page"]:hover .dial,
+.knob[aria-current="page"]:focus-visible .dial {
   transform: rotate(135deg);
+  animation: knob-on .8s cubic-bezier(.4, 0, .2, 1) backwards;
   box-shadow: 0 8px 16px rgba(0, 0, 0, .65), 0 0 0 1px rgba(0, 0, 0, .8), 0 0 14px rgba(85, 185, 174, .45);
 }
 .knob[aria-current="page"] .knob-label { color: var(--teal); }
+/* arriving from a knob click: it was already turned on the previous page */
+.knob-arrived .knob[aria-current="page"] .dial { animation: none; }
+.knob.turning .dial { transform: rotate(135deg); }
+.knob.releasing[aria-current] .dial { transform: rotate(0deg); animation: none; }
+@keyframes knob-on { from { transform: rotate(0deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .dial { transition: none; }
+  .knob[aria-current="page"] .dial { animation: none; }
+}
 
 /* ---------- Home */
 .home-hero {
@@ -148,14 +167,36 @@ img { max-width: 100%; display: block; }
   pointer-events: none;
 }
 .art canvas, .art img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.home-hero::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 30%;
-  background: linear-gradient(to bottom, transparent, var(--bg));
-  pointer-events: none;
+/* The rest of the statue continues below the opening view, drawn on scroll. */
+.statue-lower { position: relative; overflow: hidden; }
+.statue-lower .art-canvas { position: absolute; top: 0; opacity: .9; pointer-events: none; }
+.inscription { margin: 0 auto; padding: 96px 24px; max-width: 640px; text-align: center; }
+.inscription p {
+  margin: 0;
+  font-family: "Bodoni Moda", Georgia, serif;
+  font-style: italic;
+  font-size: 1.15em;
+  line-height: 1.45;
+  background: linear-gradient(180deg, #fbfbfc 0%, #c3c8ce 40%, #858c94 60%, #dfe2e5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
+/* placed on the pedestal panel by the script; appears once the serpent is drawn */
+.inscription.placed {
+  position: absolute;
+  margin: 0;
+  padding: 0 5%;
+  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  filter: blur(6px);
+  transition: opacity 1.8s ease, filter 1.8s ease;
+}
+.inscription.placed p { font-size: 1em; }
+.inscription.shown { opacity: 1; filter: none; }
 .home-foot {
   position: absolute;
   inset: auto 0 0;
@@ -243,7 +284,7 @@ img { max-width: 100%; display: block; }
   .knobs { gap: 14px; }
   .dial { width: 40px; height: 40px; }
   .knob-label { font-size: 9px; letter-spacing: .16em; }
-  .art { height: min(88%, 135vw); bottom: 6%; }
+  .art { height: min(100%, 160vw); }
   .home-foot .wrap { flex-direction: column; align-items: flex-start; padding-bottom: 24px; }
   .page { padding: 130px 0 64px; }
   .panel { padding: 28px 22px; }
