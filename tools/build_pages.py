@@ -10,7 +10,7 @@ HEAD = '''<!doctype html>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/styles.css?v={version}">
 </head>
 <body>
 
@@ -34,13 +34,16 @@ FOOT = '''
     </div>
   </footer>
 '''
+# Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
+VERSION = "2026-10-29b"
+
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
 def page(fname, title, desc, body, foot=True, tail=""):
     knobs = "\n".join(
         f'        <a class="knob" href="{h}"{" aria-current=\"page\"" if h == fname else ""}><span class="dial" aria-hidden="true"></span><span class="knob-label">{l}</span></a>'
         for h, l in NAV)
-    html = HEAD.format(title=title, desc=desc, knobs=knobs) + body + (FOOT if foot else "") + tail + "</body>\n</html>\n"
+    html = HEAD.format(title=title, desc=desc, knobs=knobs, version=VERSION) + body + (FOOT if foot else "") + tail + "</body>\n</html>\n"
     open(fname, "w").write(html)
 
 page("index.html", "Ravin Pillay Law | Toronto Criminal Defence Lawyer",
@@ -58,8 +61,8 @@ page("index.html", "Ravin Pillay Law | Toronto Criminal Defence Lawyer",
     </div>
   </main>
 ''', foot=False, tail='''
-  <script src="assets/lady-justice-data.js"></script>
-  <script src="assets/lady-justice.js"></script>
+  <script src="assets/lady-justice-data.js?v=''' + VERSION + '''"></script>
+  <script src="assets/lady-justice.js?v=''' + VERSION + '''"></script>
 ''')
 
 page("practice.html", "Practice | Ravin Pillay Law",
