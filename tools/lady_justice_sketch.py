@@ -3,7 +3,7 @@
 import math, random, sys
 
 random.seed(11)
-W, H = 900, 1000
+X0, W, H = -140, 900, 1000
 INK = "#d9b878"
 
 # ---------------------------------------------------------------- geometry
@@ -64,14 +64,22 @@ def ribbon(pts, w, taper=(0.18, 0.25)):
     poly = left + right[::-1]
     return "M" + "L".join(f"{x:.0f},{y:.0f}" if w > 1.4 else f"{x:.1f},{y:.1f}" for x, y in poly) + "Z"
 
-LAYERS = {}  # opacity -> list of path data
+# Every stroke is recorded with the body part it belongs to (drives the
+# drawing order of the opening animation) and an optional rig group (parts
+# that move: the raised arm and the scales).
+RECS = []
+CUR = {"part": "construct", "rig": None}
 
-def add(d, op):
-    LAYERS.setdefault(round(op, 2), []).append(d)
+def part(name, rig=None):
+    CUR["part"], CUR["rig"] = name, rig
+
+def add(d, op, center=None, w=None):
+    RECS.append(dict(CUR, d=d, op=round(op, 2), c=center, w=w))
 
 def stroke(pts, w=1.6, op=1.0, passes=2, wob=0.8, taper=(0.18, 0.25)):
     base = catmull(pts)
-    add(ribbon(wobble(base, wob * 0.5), w, taper), op)
+    line = wobble(base, wob * 0.5)
+    add(ribbon(line, w, taper), op, center=line if w >= 1.2 else None, w=w)
     for k in range(passes - 1):
         jit = [(x + random.uniform(-1.2, 1.2), y + random.uniform(-1.2, 1.2)) for x, y in pts]
         add(ribbon(wobble(catmull(jit), wob * 1.6), w * 0.55, (0.35, 0.35)), op * 0.45)
@@ -131,7 +139,10 @@ def resample(pts, n):
     return out
 
 # ---------------------------------------------------------------- wings
-MASK = []  # silhouette polygons drawn in front of the wings
+MASK = []  # (polygon, rig) silhouettes drawn in front of the wings
+
+def mask_add(poly):
+    MASK.append((poly, CUR["rig"]))
 
 def wing(mirror):
     cx = 465
@@ -184,6 +195,7 @@ def wing(mirror):
 
 # ---------------------------------------------------------------- figure
 def figure():
+    part("hair")
     # --- hair: strands from hairline sweeping back to a low bun
     A = [(352, 202), (372, 160), (425, 134), (492, 144), (545, 188), (566, 248), (562, 305), (548, 336)]
     B = [(489, 238), (502, 244), (516, 258), (528, 282), (536, 310), (541, 334)]
@@ -208,8 +220,9 @@ def figure():
     stroke([(578, 385), (590, 440), (580, 495), (596, 540), (588, 580)], 1.4, 0.8, passes=2)
     stroke([(566, 392), (572, 440), (566, 486), (574, 520)], 1.0, 0.6, passes=1)
     stroke([(358, 196), (346, 175), (350, 160)], 1.0, 0.5, passes=1)  # wisp at hairline
-    MASK.append([(352, 202), (372, 160), (425, 134), (492, 144), (545, 188), (566, 248), (590, 400), (612, 580), (586, 584), (540, 420)])
+    mask_add([(352, 202), (372, 160), (425, 134), (492, 144), (545, 188), (566, 248), (590, 400), (612, 580), (586, 584), (540, 420)])
 
+    part("face")
     # --- face (3/4 view, turned to viewer's left, tilted down)
     stroke([(352, 202), (343, 222), (337, 243)], 2.2, 1.0)  # forehead
     stroke([(342, 287), (347, 302), (350, 320)], 1.8, 0.95)  # far cheek below band
@@ -235,9 +248,21 @@ def figure():
     hatch([(352, 380), (386, 376), (378, 393), (356, 394)], 40, 3.5, 0.6, 0.55)
     hatch([(346, 344), (362, 342), (358, 350), (346, 352)], 40, 3, 0.6, 0.5)
     hatch([(352, 296), (366, 294), (352, 320), (344, 318)], 60, 4, 0.5, 0.35)
-    MASK.append([(352, 202), (337, 243), (342, 288), (326, 330), (343, 340), (343, 360), (347, 380), (348, 399),
+    mask_add([(352, 202), (337, 243), (342, 288), (326, 330), (343, 340), (343, 360), (347, 380), (348, 399),
                  (360, 414), (392, 422), (440, 404), (489, 345), (505, 323), (500, 240)])
 
+    # closed, downcast eyes: drawn first, hidden when the blindfold goes on
+    part("eyes")
+    stroke([(338, 240), (348, 236), (360, 236)], 1.4, 0.8)  # far brow
+    stroke([(342, 263), (350, 267), (360, 266)], 1.4, 0.9)  # far eyelid
+    stroke([(378, 238), (402, 232), (430, 234), (452, 242)], 1.8, 0.9)  # near brow
+    stroke([(384, 258), (400, 268), (418, 269), (432, 262)], 1.8, 1.0)  # near eyelid
+    stroke([(388, 252), (406, 254), (426, 252)], 0.9, 0.5, passes=1)  # lid crease
+    for x in (392, 400, 408, 416, 424):
+        stroke([(x, 267 - abs(x - 410) * 0.12), (x - 3, 274 - abs(x - 410) * 0.12)], 0.7, 0.7, passes=1, wob=0)
+    hatch([(430, 246), (455, 250), (458, 280), (436, 272)], 50, 4, 0.6, 0.45)
+
+    part("blindfold")
     # --- blindfold band wrapping the head, knot and trailing tails
     top = [(335, 243), (380, 235), (432, 238), (482, 250), (540, 268)]
     bot = [(342, 288), (386, 285), (436, 290), (480, 301), (536, 302)]
@@ -255,8 +280,9 @@ def figure():
         stroke(tb, 1.6, 0.95)
         stroke([ta[-1], tb[-1]], 1.2, 0.8, passes=1)
         hatch(ta + tb[::-1], 30, 4.5, 0.6, 0.45)
-        MASK.append(ta + tb[::-1])
+        mask_add(ta + tb[::-1])
 
+    part("neck")
     # --- neck
     stroke([(400, 423), (398, 470), (394, 520)], 2.0, 1.0)
     stroke([(522, 398), (526, 455), (536, 512)], 2.0, 1.0)
@@ -265,8 +291,9 @@ def figure():
     hatch([(470, 470), (528, 470), (534, 515), (480, 515)], 35, 5, 0.6, 0.45)
     stroke([(410, 515), (440, 505), (460, 510)], 1.2, 0.7, passes=1)  # collarbones
     stroke([(475, 512), (500, 505), (530, 512)], 1.2, 0.6, passes=1)
-    MASK.append([(394, 420), (530, 395), (540, 520), (390, 520)])
+    mask_add([(394, 420), (530, 395), (540, 520), (390, 520)])
 
+    part("robe")
     # --- shoulders, drapery and torso
     stroke([(395, 515), (330, 535), (262, 556), (226, 574)], 2.2, 1.0, passes=3)
     stroke([(536, 512), (600, 530), (660, 556), (700, 602), (716, 690), (720, 1000)], 2.4, 1.0, passes=3)
@@ -285,9 +312,10 @@ def figure():
     hatch([(640, 580), (700, 605), (716, 700), (718, 1000), (660, 1000), (670, 800)], 60, 5, 0.7, 0.55)
     hatch([(670, 620), (712, 640), (716, 860), (690, 860)], -20, 6, 0.6, 0.4)
     hatch([(286, 640), (330, 640), (320, 760), (288, 820)], 65, 5, 0.6, 0.45)
-    MASK.append([(226, 574), (262, 556), (395, 515), (536, 512), (600, 530), (660, 556), (700, 602), (716, 690),
+    mask_add([(226, 574), (262, 556), (395, 515), (536, 512), (600, 530), (660, 556), (700, 602), (716, 690),
                  (720, 1000), (296, 1000), (282, 720), (286, 640)])
 
+    part("arm", "arm")
     # --- raised arm (viewer's left) holding the scales
     outer = [(226, 574), (182, 522), (142, 472), (120, 430), (126, 380), (146, 300), (160, 248)]
     inner = [(286, 640), (242, 592), (194, 522), (162, 465), (162, 420), (172, 352), (182, 292), (188, 250)]
@@ -302,25 +330,29 @@ def figure():
     for y in (222, 232, 242):
         stroke([(160, y), (176, y - 2), (192, y + 1)], 0.9, 0.6, passes=1)
     hatch([(178, 212), (196, 222), (194, 250), (182, 252)], 70, 3.5, 0.6, 0.5)
-    MASK.append(outer + inner[::-1])
-    MASK.append([(150, 210), (200, 210), (200, 258), (150, 258)])
+    mask_add(outer + inner[::-1])
+    mask_add([(150, 210), (200, 210), (200, 258), (150, 258)])
 
     # --- scales
+    part("arm", "scale")
     stroke(ellipse_pts(174, 186, 9, 10, 0, 360, n=16), 1.8, 1.0)
     stroke([(174, 196), (174, 212)], 2.4, 1.0)
     stroke([(174, 254), (174, 274)], 2.8, 1.0)
     stroke(ellipse_pts(174, 278, 6, 6, 0, 360, n=14), 1.6, 1.0)
+    part("arm", "beam")
     stroke([(52, 286), (110, 280), (174, 278), (238, 280), (296, 286)], 3.0, 1.0, passes=3)
     stroke([(52, 291), (110, 286), (174, 284), (238, 286), (296, 291)], 0.9, 0.5, passes=1)
-    for cxp in (52, 296):
+    for cxp, rig in ((52, "panL"), (296, "panR")):
+        part("arm", rig)
         stroke(ellipse_pts(cxp, 288, 4, 4, 0, 360, n=10), 1.4, 1.0, passes=1)
         for dx in (-38, 0, 38):
             stroke([(cxp, 292), (cxp + dx, 412)], 0.9, 0.85, passes=1, wob=0.2)
         stroke(ellipse_pts(cxp, 414, 42, 8, 0, 360), 1.8, 1.0)
         stroke([(cxp - 42, 414), (cxp - 30, 432), (cxp, 440), (cxp + 30, 432), (cxp + 42, 414)], 2.0, 1.0)
         hatch([(cxp - 30, 420), (cxp + 42, 416), (cxp + 30, 432), (cxp, 440), (cxp - 30, 432)], 60, 3.5, 0.6, 0.55)
-        MASK.append(ellipse_pts(cxp, 422, 46, 22, 0, 360, n=16))
+        mask_add(ellipse_pts(cxp, 422, 46, 22, 0, 360, n=16))
 
+    part("snake")
     # --- serpent coiled around the neck, head resting on her shoulder
     def tube(center, w0, w1, op=1.0, scales=True):
         C = resample(center, 60)
@@ -335,7 +367,7 @@ def figure():
             R.append((p[0] - nx * w, p[1] - ny * w))
         stroke(L[::2], 1.8, op, passes=2)
         stroke(R[::2], 1.8, op, passes=2)
-        MASK.append(L + R[::-1])
+        mask_add(L + R[::-1])
         if scales:
             for i in range(2, len(C) - 2, 2):
                 for f in (0.25, 0.75):
@@ -351,42 +383,68 @@ def figure():
     # head
     head = [(312, 466), (296, 462), (278, 466), (266, 474), (270, 484), (290, 489), (312, 488)]
     stroke(head, 2.0, 1.0, passes=2)
-    MASK.append(head)
+    mask_add(head)
     stroke([(300, 467), (286, 470), (276, 476)], 0.9, 0.6, passes=1)
     stroke(ellipse_pts(290, 473, 3.5, 2.6, 0, 360, n=10), 1.4, 1.0, passes=1)
     stroke([(266, 478), (248, 479), (240, 474)], 0.9, 0.9, passes=1, wob=0)
     stroke([(248, 479), (240, 484)], 0.9, 0.9, passes=1, wob=0)
     hatch([(270, 482), (312, 480), (312, 488), (290, 489)], 10, 2.5, 0.5, 0.6)
 
+    part("construct")
     # faint construction lines, as a sketch artist would leave them
     stroke(ellipse_pts(430, 285, 115, 150, 0, 360, -18, 40), 0.6, 0.22, passes=1, wob=1.5)
     stroke([(372, 150), (345, 300), (360, 420)], 0.5, 0.2, passes=1, wob=1)
 
+part("wings")
 wing(False)
 wing(True)
-WING_LAYERS = LAYERS
-LAYERS = {}
 figure()
 
-def emit(layers):
-    return "\n".join(f'<path d="{"".join(ds)}" fill-opacity="{op}"/>' for op, ds in sorted(layers.items()))
+def pts_d(pts):
+    return "M" + "L".join(f"{x:.0f},{y:.0f}" for x, y in pts)
 
-mask_polys = "\n".join('<path d="M' + "L".join(f"{x:.0f},{y:.0f}" for x, y in catmull(p, 6)) + 'Z"/>' for p in MASK)
-svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" fill="{INK}">
-<title>Pencil sketch of winged, blindfolded Lady Justice holding the scales, a serpent around her neck</title>
+def emit_recs(recs):
+    out = []
+    for r in recs:
+        extra = f' data-c="{pts_d(r["c"][::2] + [r["c"][-1]])}" data-w="{r["w"]:.1f}"' if r["c"] else ""
+        out.append(f'<path d="{r["d"]}" fill-opacity="{r["op"]}"{extra}/>')
+    return "\n".join(out)
+
+def part_group(name):
+    recs = [r for r in RECS if r["part"] == name]
+    if name != "arm":
+        hidden = ' opacity="0"' if name == "eyes" else ""  # eyes only show during the animation
+        return f'<g data-part="{name}"{hidden}>\n{emit_recs(recs)}\n</g>'
+    by = lambda rig: emit_recs([r for r in recs if r["rig"] == rig])
+    return (f'<g data-part="arm"><g data-rig="arm">\n{by("arm")}\n<g data-rig="scale">\n{by("scale")}\n'
+            f'<g data-rig="beam">\n{by("beam")}\n</g>\n<g data-rig="panL">\n{by("panL")}\n</g>\n'
+            f'<g data-rig="panR">\n{by("panR")}\n</g>\n</g></g></g>')
+
+def mask_d(rig):
+    return "\n".join(f'<path d="{pts_d(catmull(p, 6))}Z"/>' for p, r in MASK if r == rig)
+
+TW = W - X0
+svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{X0} 0 {TW} {H}" fill="{INK}" id="lj" class="hero-art" aria-hidden="true">
 <defs>
-<mask id="front" maskUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}">
-<rect width="{W}" height="{H}" fill="#fff"/>
+<mask id="front" maskUnits="userSpaceOnUse" x="{X0}" y="0" width="{TW}" height="{H}">
+<rect x="{X0}" width="{TW}" height="{H}" fill="#fff"/>
 <g fill="#000" stroke="#000" stroke-width="8" stroke-linejoin="round">
-{mask_polys}
+{mask_d(None)}
+<g data-rig="arm" data-mask="1">{mask_d("arm")}<g data-rig="scale">{mask_d("scale")}<g data-rig="beam"></g><g data-rig="panL">{mask_d("panL")}</g><g data-rig="panR">{mask_d("panR")}</g></g></g>
 </g>
 </mask>
 </defs>
 <g mask="url(#front)" opacity=".55">
-{emit(WING_LAYERS)}
+{part_group("wings")}
 </g>
-{emit(LAYERS)}
-</svg>
-"""
-open(sys.argv[1], "w").write(svg)
+{chr(10).join(part_group(n) for n in ("construct", "hair", "face", "eyes", "neck", "robe", "snake", "arm", "blindfold"))}
+</svg>"""
+
+open(sys.argv[1], "w").write('<?xml version="1.0" encoding="UTF-8"?>\n' + svg + "\n")
 print("wrote", sys.argv[1], f"{len(svg)/1024:.0f} KB")
+# inline the drawing into the page between the art markers
+if len(sys.argv) > 2:
+    page = open(sys.argv[2]).read()
+    a, b = page.index("<!--art-->") + len("<!--art-->"), page.index("<!--/art-->")
+    open(sys.argv[2], "w").write(page[:a] + "\n" + svg + "\n" + page[b:])
+    print("inlined into", sys.argv[2])
