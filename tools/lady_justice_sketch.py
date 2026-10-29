@@ -1,10 +1,13 @@
 """Generates a pencil-style sketch of winged, blindfolded Lady Justice
-(head turned ~45deg to the viewer's left, tilted down) as an SVG."""
+(head turned ~45deg to the viewer's left, tilted down) as an SVG plus
+stroke data for the canvas animation. Usage:
+  python3 tools/lady_justice_sketch.py assets/lady-justice.svg assets/lady-justice-data.js"""
 import math, random, sys
 
 random.seed(11)
-X0, W, H = -140, 900, 1000
-INK = "#d9b878"
+X0, W, H = -140, 960, 1000
+INK = "#cdd2d8"   # brushed steel
+GOLD = "#d2b06a"  # gold leaf: scales and blindfold
 
 # ---------------------------------------------------------------- geometry
 def catmull(pts, step=5.0):
@@ -73,16 +76,17 @@ CUR = {"part": "construct", "rig": None}
 def part(name, rig=None):
     CUR["part"], CUR["rig"] = name, rig
 
-def add(d, op, center=None, w=None):
-    RECS.append(dict(CUR, d=d, op=round(op, 2), c=center, w=w))
+def add(line, w, taper, op, trace=False):
+    """Record a stroke; `trace` strokes are drawn on like a pencil in the animation, the rest fade in."""
+    RECS.append(dict(CUR, d=ribbon(line, w, taper), op=round(op, 2), line=line, w=w, taper=taper, trace=trace))
 
 def stroke(pts, w=1.6, op=1.0, passes=2, wob=0.8, taper=(0.18, 0.25)):
     base = catmull(pts)
     line = wobble(base, wob * 0.5)
-    add(ribbon(line, w, taper), op, center=line if w >= 1.2 else None, w=w)
+    add(line, w, taper, op, trace=w >= 1.2)
     for k in range(passes - 1):
         jit = [(x + random.uniform(-1.2, 1.2), y + random.uniform(-1.2, 1.2)) for x, y in pts]
-        add(ribbon(wobble(catmull(jit), wob * 1.6), w * 0.55, (0.35, 0.35)), op * 0.45)
+        add(wobble(catmull(jit), wob * 1.6), w * 0.55, (0.35, 0.35), op * 0.45)
 
 def ellipse_pts(cx, cy, rx, ry, a0=0, a1=360, rot=0, n=24):
     r = math.radians(rot)
@@ -118,7 +122,7 @@ def hatch(poly, angle, spacing, w=0.8, op=0.55, jitter=1.5, inset=0.0):
             pts = [(px * cb - py * sb, px * sb + py * cb) for px, py in seg]
             n = max(2, int(math.dist(*pts) / 10))
             line = [(pts[0][0] + (pts[1][0] - pts[0][0]) * k / n, pts[0][1] + (pts[1][1] - pts[0][1]) * k / n) for k in range(n + 1)]
-            add(ribbon(line, w, (0.25, 0.3)), op)
+            add(line, w, (0.25, 0.3), op)
         y += spacing * random.uniform(0.85, 1.15)
 
 def lerp(a, b, t):
@@ -406,17 +410,17 @@ def pts_d(pts):
 def emit_recs(recs):
     out = []
     for r in recs:
-        extra = f' data-c="{pts_d(r["c"][::2] + [r["c"][-1]])}" data-w="{r["w"]:.1f}"' if r["c"] else ""
-        out.append(f'<path d="{r["d"]}" fill-opacity="{r["op"]}"{extra}/>')
+        out.append(f'<path d="{r["d"]}" fill-opacity="{r["op"]}"/>')
     return "\n".join(out)
 
 def part_group(name):
     recs = [r for r in RECS if r["part"] == name]
     if name != "arm":
         hidden = ' opacity="0"' if name == "eyes" else ""  # eyes only show during the animation
-        return f'<g data-part="{name}"{hidden}>\n{emit_recs(recs)}\n</g>'
+        fill = f' fill="{GOLD}"' if name == "blindfold" else ""
+        return f'<g data-part="{name}"{hidden}{fill}>\n{emit_recs(recs)}\n</g>'
     by = lambda rig: emit_recs([r for r in recs if r["rig"] == rig])
-    return (f'<g data-part="arm"><g data-rig="arm">\n{by("arm")}\n<g data-rig="scale">\n{by("scale")}\n'
+    return (f'<g data-part="arm"><g data-rig="arm">\n{by("arm")}\n<g data-rig="scale" fill="{GOLD}">\n{by("scale")}\n'
             f'<g data-rig="beam">\n{by("beam")}\n</g>\n<g data-rig="panL">\n{by("panL")}\n</g>\n'
             f'<g data-rig="panR">\n{by("panR")}\n</g>\n</g></g></g>')
 
@@ -424,7 +428,7 @@ def mask_d(rig):
     return "\n".join(f'<path d="{pts_d(catmull(p, 6))}Z"/>' for p, r in MASK if r == rig)
 
 TW = W - X0
-svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{X0} 0 {TW} {H}" fill="{INK}" id="lj" class="hero-art" aria-hidden="true">
+svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{X0} 0 {TW} {H}" fill="{INK}" role="img" aria-label="Pencil sketch of winged, blindfolded Lady Justice holding the scales">
 <defs>
 <mask id="front" maskUnits="userSpaceOnUse" x="{X0}" y="0" width="{TW}" height="{H}">
 <rect x="{X0}" width="{TW}" height="{H}" fill="#fff"/>
@@ -442,9 +446,28 @@ svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{X0} 0 {TW} {H}" fill
 
 open(sys.argv[1], "w").write('<?xml version="1.0" encoding="UTF-8"?>\n' + svg + "\n")
 print("wrote", sys.argv[1], f"{len(svg)/1024:.0f} KB")
-# inline the drawing into the page between the art markers
+# compact stroke data for the canvas animation (assets/lady-justice-data.js)
 if len(sys.argv) > 2:
-    page = open(sys.argv[2]).read()
-    a, b = page.index("<!--art-->") + len("<!--art-->"), page.index("<!--/art-->")
-    open(sys.argv[2], "w").write(page[:a] + "\n" + svg + "\n" + page[b:])
-    print("inlined into", sys.argv[2])
+    PARTS = ["wings", "construct", "hair", "face", "eyes", "neck", "robe", "snake", "arm", "blindfold"]
+    RIGS = [None, "arm", "scale", "beam", "panL", "panR"]
+
+    def enc(pts):
+        # half-pixel integers, delta encoded
+        q = [(round(x * 2), round(y * 2)) for x, y in pts]
+        out, px, py = [], 0, 0
+        for x, y in q:
+            out += [x - px, y - py]
+            px, py = x, y
+        return ",".join(map(str, out))
+
+    rows = []
+    for r in RECS:
+        rows.append(f'[{PARTS.index(r["part"])},{RIGS.index(r["rig"])},{round(r["op"] * 100)},{round(r["w"] * 10)},'
+                    f'{round(r["taper"][0] * 100)},{round(r["taper"][1] * 100)},{int(r["trace"])},"{enc(r["line"])}"]')
+    masks = [f'[{RIGS.index(rig)},"{enc(catmull(poly, 6))}"]' for poly, rig in MASK]
+    js = ("// Generated by tools/lady_justice_sketch.py -- do not edit by hand.\n"
+          f"window.LADY_JUSTICE={{box:[{X0},0,{TW},{H}],ink:\"{INK}\",gold:\"{GOLD}\",\n"
+          f"parts:{PARTS!r},\nrigs:{[x or '' for x in RIGS]!r},\n"
+          f"strokes:[\n{','.join(rows)}],\nmasks:[{','.join(masks)}]}};\n").replace("'", '"')
+    open(sys.argv[2], "w").write(js)
+    print("wrote", sys.argv[2], f"{len(js)/1024:.0f} KB,", len(RECS), "strokes")
