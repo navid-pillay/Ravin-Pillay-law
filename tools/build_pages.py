@@ -55,7 +55,7 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30n"
+VERSION = "2026-10-30o"
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
@@ -94,7 +94,7 @@ page("index.html", "Ravin Pillay Law | Toronto Criminal Defence Lawyer",
     <!-- The rest of the statue is drawn here as the visitor scrolls; the inscription sits on the pedestal. -->
     <section class="statue-lower" data-lady-justice-lower>
       <blockquote class="inscription" data-inscription>
-        <p>There can be no justice so long as laws are absolute. Even life itself is an exercise in exceptions.</p>
+        <p>&ldquo;There can be no justice so long as laws are absolute. Even life itself is an exercise in exceptions.&rdquo;</p>
       </blockquote>
     </section>
   </main>
