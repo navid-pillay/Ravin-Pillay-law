@@ -199,7 +199,7 @@ img { max-width: 100%; display: block; }
   filter: blur(6px);
   transition: opacity 1.8s ease, filter 1.8s ease;
 }
-.inscription.placed p { font-size: 1em; }
+.inscription.placed p { font-size: 1.4em; text-wrap: balance; }  /* short maxim: engrave it larger, lines evened out */
 .inscription.shown { opacity: 1; filter: none; }
 .home-foot {
   position: absolute;
