@@ -1,10 +1,10 @@
 // Navigation between pages.
 //
 // Knobs: the chosen knob turns on (clockwise) and the current one turns off.
-// Page change: the content swings away in 3D while Lady Justice glides towards
-// where she sits on the next page and fades; the next page re-sketches her
-// there (facing the content on the inner pages) as its content swings in.
-// Between inner pages she simply stays put.
+// Page change: the content swings away in 3D while Lady Justice turns round
+// and glides to where she stands on the next page (facing the content on the
+// inner pages); the next page opens with her there and its content swinging
+// in. Between inner pages she simply stays put.
 (function () {
   var root = document.documentElement;
   try {
@@ -13,7 +13,7 @@
   } catch (e) {}
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  var DURATION = 600;
+  var DURATION = 900;
   var EASE = 'cubic-bezier(.65, 0, .35, 1)';
   var isHome = root.classList.contains('is-home');
 
@@ -41,17 +41,21 @@
   function moveLady(toHome) {
     var lady = isHome ? document.querySelector('.home-hero .art') : document.querySelector('.lady-side');
     if (!lady || isHome === toHome) return;  // between inner pages she stays where she is
-    var from = lady.getBoundingClientRect(), to = probe(toHome);
+    var to = probe(toHome);
+    if (window.ladyJustice) {
+      // she turns round in 3D as she glides into place (0 = facing left as on the home page,
+      // 180 degrees = her mirror image, facing the content on the inner pages)
+      window.ladyJustice.turn(lady, to.rect, to.opacity, isHome ? 0 : Math.PI, isHome ? Math.PI : 0, DURATION);
+      return;
+    }
+    var from = lady.getBoundingClientRect();
     var dx = (to.rect.left + to.rect.width / 2) - (from.left + from.width / 2);
     var dy = (to.rect.top + to.rect.height / 2) - (from.top + from.height / 2);
-    var sc = to.rect.height / from.height;
-    // glide and shrink (or grow) towards her place on the next page while fading;
-    // the next page then re-sketches her there, facing the other way
-    var base = getComputedStyle(lady).transform;   // her own placement (and mirroring)
+    var base = getComputedStyle(lady).transform;
     base = base === 'none' ? '' : base + ' ';
     lady.animate([
-      { transform: 'translate(0px, 0px) ' + base + 'scale(1)', opacity: getComputedStyle(lady).opacity },
-      { transform: 'translate(' + dx + 'px, ' + dy + 'px) ' + base + 'scale(' + sc + ')', opacity: 0 }
+      { transform: 'translate(0px, 0px) ' + base + 'scale(1)' },
+      { transform: 'translate(' + dx + 'px, ' + dy + 'px) ' + base + 'scale(' + to.rect.height / from.height + ')' }
     ], { duration: DURATION, easing: EASE, fill: 'forwards' });
   }
 
@@ -84,6 +88,8 @@
     links.forEach(function (a) { a.classList.remove('turning', 'releasing'); });
     document.querySelectorAll('.art, .lady-side').forEach(function (el) {
       el.getAnimations().forEach(function (an) { an.cancel(); });
+      el.style.visibility = '';
     });
+    document.querySelectorAll('.turn-canvas').forEach(function (c) { c.remove(); });
   });
 })();
