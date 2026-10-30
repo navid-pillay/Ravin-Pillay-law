@@ -305,17 +305,20 @@ img { max-width: 100%; display: block; }
   .contact-grid .big { font-size: 18px; overflow-wrap: anywhere; }
 }
 
-/* ---------- Lady Justice on the inner pages: on the left, turned to face the content */
+/* ---------- Lady Justice on the inner pages: in her own column on the left,
+   turned to face the content. Sized so she never slips behind the content:
+   about a quarter of her drawing (the far wing) runs off the left edge. */
 .lady-side {
+  --h: min(88vh, 42vw);
   position: fixed;
   bottom: 0;
-  left: calc(14vw - 42vh);   /* puts her centre line at about 14vw */
-  height: 80vh;
+  left: calc(var(--h) * -0.26);
+  height: var(--h);
   width: auto;
   max-width: none;
   aspect-ratio: 1100 / 1000;
   transform: scaleX(-1);
-  opacity: .38;
+  opacity: .7;
   pointer-events: none;
   z-index: 0;
 }
@@ -325,7 +328,8 @@ img { max-width: 100%; display: block; }
   .site-foot .wrap { margin-left: max(36vw, 360px); padding-left: 0; }
 }
 @media (max-width: 999px) {
-  .lady-side { left: calc(10vw - 55vh); opacity: .22; }
+  /* no room for a column: she stands faintly behind the content */
+  .lady-side { --h: 70vh; left: calc(var(--h) * -0.3); opacity: .25; }
 }
 
 /* ---------- Page transitions
