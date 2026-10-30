@@ -1,9 +1,9 @@
 // Navigation between pages.
 //
 // Knobs: the chosen knob turns on (clockwise) and the current one turns off.
-// Page change: Lady Justice un-draws herself, then the next page draws her
-// afresh in her new place (facing the content on the inner pages). Between
-// inner pages she simply stays put.
+// Page change: Lady Justice un-draws herself (and on the info pages the text
+// un-types), then the next page draws her afresh in her new place (facing the
+// content on the inner pages). Between inner pages she simply stays put.
 (function () {
   var root = document.documentElement;
   try {
@@ -16,11 +16,13 @@
   var EASE = 'cubic-bezier(.65, 0, .35, 1)';
   var isHome = root.classList.contains('is-home');
 
+  // returns true if she is un-drawn (not when moving between inner pages, where she stays)
   function undrawLady(toHome) {
     var lady = isHome ? document.querySelector('.home-hero .art') : document.querySelector('.lady-side');
-    if (!lady || isHome === toHome) return;  // between inner pages she stays where she is
+    if (!lady || isHome === toHome) return false;
     if (window.ladyJustice) window.ladyJustice.undraw(lady, !isHome, DURATION);
     else lady.animate([{ opacity: getComputedStyle(lady).opacity }, { opacity: 0 }], { duration: DURATION, fill: 'forwards' });
+    return true;
   }
 
   var links = document.querySelectorAll('.knob, .brand');
@@ -40,8 +42,11 @@
       } catch (err) {}
       root.classList.remove('from-home', 'from-inner');
       root.classList.add('leaving');
-      undrawLady(toHome);
-      setTimeout(function () { location.href = a.href; }, DURATION);
+      // on the info pages the text un-types too (assets/type.js)
+      var text = window.pageText;
+      if (text) text.untype();
+      var wait = undrawLady(toHome) ? DURATION : text ? text.duration + 30 : DURATION;
+      setTimeout(function () { location.href = a.href; }, wait);
     });
   });
 

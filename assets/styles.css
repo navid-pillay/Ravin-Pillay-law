@@ -346,3 +346,9 @@ img { max-width: 100%; display: block; }
 /* the figure while she un-draws before a page change (drawn by assets/lady-justice.js) */
 .turn-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 6; pointer-events: none; }
 
+
+/* ---------- Info pages: text types in and out (assets/type.js) */
+.type-ghost { visibility: hidden; }
+/* hidden until the script has prepared the typing; shown anyway if it never runs */
+.typing .page, .typing .site-foot { visibility: hidden; animation: show-anyway 0s 1.5s forwards; }
+@keyframes show-anyway { to { visibility: visible; } }

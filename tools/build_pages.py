@@ -21,6 +21,9 @@ HEAD = '''<!doctype html>
       sessionStorage.removeItem('bfReload');
       if (reloaded && !ours && !/(^|\\/)(index\\.html)?$/.test(location.pathname)) location.replace('index.html?v={version}');
     }} catch (e) {{}}
+    // Info pages: keep the text hidden until assets/type.js types it in.
+    if (!/is-home/.test(document.documentElement.className) && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+      document.documentElement.classList.add('typing');
     // Which kind of page we came from, so Lady Justice knows whether to be re-drawn.
     try {{
       var from = sessionStorage.getItem('navFrom');
@@ -52,7 +55,7 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30m"
+VERSION = "2026-10-30n"
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
@@ -65,7 +68,8 @@ def page(fname, title, desc, body, foot=True, tail=""):
     side = "" if home else ('\n  <div class="lady-side" data-lady-justice="side" aria-hidden="true">'
                             '<img src="assets/lady-side.webp" alt="" width="1650" height="1500"></div>\n')
     if not home:  # the re-sketch when arriving from the home page
-        tail = (f'  <script src="assets/lady-justice-data.js?v={VERSION}"></script>\n'
+        tail = (f'  <script src="assets/type.js?v={VERSION}"></script>\n'
+                f'  <script src="assets/lady-justice-data.js?v={VERSION}"></script>\n'
                 f'  <script src="assets/lady-justice.js?v={VERSION}"></script>\n')
     html = (HEAD.format(title=title, desc=desc, knobs=knobs, version=VERSION, html_class=' class="is-home"' if home else "")
             + side + body + (FOOT if foot else "")
