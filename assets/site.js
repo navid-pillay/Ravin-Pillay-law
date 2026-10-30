@@ -1,10 +1,9 @@
 // Navigation between pages.
 //
 // Knobs: the chosen knob turns on (clockwise) and the current one turns off.
-// Page change: the content swings away in 3D while Lady Justice un-draws
-// herself; the next page draws her afresh in her new place (facing the content
-// on the inner pages) as its content swings in. Between inner pages she simply
-// stays put.
+// Page change: Lady Justice un-draws herself, then the next page draws her
+// afresh in her new place (facing the content on the inner pages). Between
+// inner pages she simply stays put.
 (function () {
   var root = document.documentElement;
   try {
