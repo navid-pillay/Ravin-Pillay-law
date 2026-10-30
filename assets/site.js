@@ -18,7 +18,10 @@
       if (current) current.classList.add('releasing');
       var isKnob = a.classList.contains('knob');
       if (isKnob) a.classList.add('turning');
-      try { if (isKnob) sessionStorage.setItem('knobTurned', '1'); } catch (err) {}
+      try {
+        if (isKnob) sessionStorage.setItem('knobTurned', '1');
+        sessionStorage.setItem('navFrom', root.classList.contains('is-home') ? 'home' : 'inner');
+      } catch (err) {}
       setTimeout(function () { location.href = a.href; }, 480);
     });
   });

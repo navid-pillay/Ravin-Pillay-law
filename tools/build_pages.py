@@ -1,5 +1,5 @@
 HEAD = '''<!doctype html>
-<html lang="en">
+<html lang="en"{html_class}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,6 +11,14 @@ HEAD = '''<!doctype html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/styles.css?v={version}">
+  <script>
+    // Which kind of page we came from, so the page transition knows whether Lady Justice turns around.
+    try {{
+      var from = sessionStorage.getItem('navFrom');
+      if (from) document.documentElement.classList.add('from-' + from);
+      sessionStorage.removeItem('navFrom');
+    }} catch (e) {{}}
+  </script>
 </head>
 <body>
 
@@ -35,7 +43,7 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30d"
+VERSION = "2026-10-30f"
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
@@ -43,7 +51,11 @@ def page(fname, title, desc, body, foot=True, tail=""):
     knobs = "\n".join(
         f'        <a class="knob" href="{h}"{" aria-current=\"page\"" if h == fname else ""}><span class="dial" aria-hidden="true"></span><span class="knob-label">{l}</span></a>'
         for h, l in NAV)
-    html = (HEAD.format(title=title, desc=desc, knobs=knobs, version=VERSION) + body + (FOOT if foot else "")
+    home = fname == "index.html"
+    # inner pages keep Lady Justice on the left, turned to face the content
+    side = "" if home else '\n  <img class="lady-side" src="assets/lady-justice.svg" alt="" aria-hidden="true">\n'
+    html = (HEAD.format(title=title, desc=desc, knobs=knobs, version=VERSION, html_class=' class="is-home"' if home else "")
+            + side + body + (FOOT if foot else "")
             + f'\n  <script src="assets/site.js?v={VERSION}"></script>\n' + tail + "</body>\n</html>\n")
     open(fname, "w").write(html)
 

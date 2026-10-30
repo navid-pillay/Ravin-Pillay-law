@@ -15,6 +15,7 @@
 }
 
 * { box-sizing: border-box; }
+html { background: var(--bg); }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -302,4 +303,64 @@ img { max-width: 100%; display: block; }
   .charges { grid-template-columns: 1fr; }
   .charges li { font-size: 21px; padding: 16px 0; }
   .contact-grid .big { font-size: 18px; overflow-wrap: anywhere; }
+}
+
+/* ---------- Lady Justice on the inner pages: on the left, turned to face the content */
+.lady-side {
+  position: fixed;
+  bottom: 0;
+  left: calc(14vw - 42vh);   /* puts her centre line at about 14vw */
+  height: 80vh;
+  width: auto;
+  max-width: none;
+  aspect-ratio: 1100 / 1000;
+  transform: scaleX(-1);
+  opacity: .38;
+  pointer-events: none;
+  z-index: 0;
+  view-transition-name: lady;
+}
+.page, .site-foot { position: relative; z-index: 1; }
+@media (min-width: 1000px) {
+  .page > .wrap { width: auto; margin-left: max(36vw, 360px); max-width: 860px; padding-left: 0; }
+  .site-foot .wrap { margin-left: max(36vw, 360px); padding-left: 0; }
+}
+@media (max-width: 999px) {
+  .lady-side { left: calc(10vw - 55vh); opacity: .22; }
+}
+
+/* ---------- Page transitions (browsers with cross-document View Transitions) */
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: site-header; }
+.home-hero .art { view-transition-name: lady; }
+
+/* the page turns away like the face of a cube; the next one turns in from the right */
+::view-transition-old(root) {
+  transform-origin: 100% 50%;
+  animation: page-out .85s cubic-bezier(.65, 0, .35, 1) both;
+}
+::view-transition-new(root) {
+  transform-origin: 0% 50%;
+  animation: page-in .85s cubic-bezier(.65, 0, .35, 1) both;
+}
+@keyframes page-out {
+  45% { opacity: 1; }
+  to { transform: perspective(1400px) translateX(-34%) rotateY(-62deg); opacity: 0; }
+}
+@keyframes page-in {
+  from { transform: perspective(1400px) translateX(34%) rotateY(62deg); opacity: 0; }
+  55% { opacity: 1; }
+}
+
+/* Lady Justice glides between the centre and the left, turning around on the way */
+::view-transition-group(lady) { animation-duration: .95s; animation-timing-function: cubic-bezier(.65, 0, .35, 1); }
+html.from-home:not(.is-home)::view-transition-old(lady),
+html.from-inner.is-home::view-transition-old(lady) { animation: lady-turn-out .48s cubic-bezier(.5, 0, .75, 0) both; }
+html.from-home:not(.is-home)::view-transition-new(lady),
+html.from-inner.is-home::view-transition-new(lady) { animation: lady-turn-in .48s .47s cubic-bezier(.25, 1, .5, 1) both; }
+@keyframes lady-turn-out { to { transform: perspective(1400px) rotateY(90deg); } }
+@keyframes lady-turn-in { from { transform: perspective(1400px) rotateY(-90deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
 }
