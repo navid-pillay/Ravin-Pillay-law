@@ -11,50 +11,29 @@
     sessionStorage.removeItem('knobTurned');
   } catch (e) {}
 
-  // The pedestal inscription: tap it and the words glow gold, are re-typed in
-  // the other language (English in gold, Latin in steel), then the glow settles.
+  // The pedestal inscription: tap it and the words glow gold, fade over to the
+  // other language, then the glow settles back to the usual steel.
   document.querySelectorAll('.inscription-toggle').forEach(function (btn) {
-    var box = btn.closest('.inscription'), words = btn.querySelector('.words');
-    var text = { la: words.textContent, en: btn.getAttribute('data-english') };
+    var box = btn.closest('.inscription');
+    var latin = btn.querySelector('.latin'), english = btn.querySelector('.english');
     var busy = false;
     var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
-    function type(target, ms) {   // un-type the current words, then type `target`, in about `ms`
-      var from = words.textContent, steps = from.length + target.length, i = 0;
-      return new Promise(function (done) {
-        (function tick() {
-          i++;
-          words.textContent = i <= from.length ? from.slice(0, from.length - i) : target.slice(0, i - from.length);
-          if (i === from.length) box.classList.toggle('english', target === text.en);
-          if (i < steps) setTimeout(tick, ms / steps); else done();
-        })();
-      });
-    }
     btn.addEventListener('click', function () {
       if (busy) return;
       busy = true;
       var toEnglish = !box.classList.contains('translated');
-      var target = toEnglish ? text.en : text.la;
-      box.classList.toggle('translated', toEnglish);
-      btn.setAttribute('aria-pressed', toEnglish ? 'true' : 'false');
-      btn.setAttribute('aria-label', target);
-      btn.title = toEnglish ? 'Tap for the original Latin' : 'Tap for the English translation';
-      words.setAttribute('lang', toEnglish ? 'en' : 'la');
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        words.textContent = target;
-        box.classList.toggle('english', toEnglish);
-        box.classList.toggle('gold', toEnglish);
-        busy = false;
-        return;
-      }
-      box.classList.add('glow', 'gold');
-      wait(380)
-        .then(function () { return type(target, 1300); })
-        .then(function () { return wait(250); })
-        .then(function () {
-          box.classList.remove('glow');
-          if (!toEnglish) box.classList.remove('gold');
-          return wait(450);
-        })
+      var swap = function () {
+        box.classList.toggle('translated', toEnglish);
+        btn.setAttribute('aria-pressed', toEnglish ? 'true' : 'false');
+        btn.title = toEnglish ? 'Tap for the original Latin' : 'Tap for the English translation';
+        latin.setAttribute('aria-hidden', toEnglish ? 'true' : 'false');
+        english.setAttribute('aria-hidden', toEnglish ? 'false' : 'true');
+      };
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) { swap(); busy = false; return; }
+      box.classList.add('glow');
+      wait(450)
+        .then(function () { swap(); return wait(750); })
+        .then(function () { box.classList.remove('glow'); return wait(450); })
         .then(function () { busy = false; });
     });
   });

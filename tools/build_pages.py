@@ -55,7 +55,7 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30r"
+VERSION = "2026-10-30s"
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
@@ -94,9 +94,9 @@ page("index.html", "Ravin Pillay Law | Toronto Criminal Defence Lawyer",
     <!-- The rest of the statue is drawn here as the visitor scrolls; the inscription sits on the pedestal. -->
     <section class="statue-lower" data-lady-justice-lower>
       <blockquote class="inscription" data-inscription>
-        <button type="button" class="inscription-toggle" aria-pressed="false" title="Tap for the English translation"
-                data-english="&ldquo;The act does not make a person guilty unless the mind is also guilty.&rdquo;">
-          <span class="words" lang="la">&ldquo;Actus non facit reum nisi mens sit rea.&rdquo;</span>
+        <button type="button" class="inscription-toggle" aria-pressed="false" title="Tap for the English translation">
+          <span class="words latin" lang="la"><span class="steel-ink">&ldquo;Actus non facit reum nisi mens sit rea.&rdquo;</span><span class="gold-ink" aria-hidden="true">&ldquo;Actus non facit reum nisi mens sit rea.&rdquo;</span></span>
+          <span class="words english" lang="en" aria-hidden="true"><span class="steel-ink">&ldquo;The act does not make a person guilty unless the mind is also guilty.&rdquo;</span><span class="gold-ink" aria-hidden="true">&ldquo;The act does not make a person guilty unless the mind is also guilty.&rdquo;</span></span>
         </button>
       </blockquote>
     </section>

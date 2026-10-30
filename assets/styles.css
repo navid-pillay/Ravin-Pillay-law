@@ -189,25 +189,37 @@ img { max-width: 100%; display: block; }
   -webkit-tap-highlight-color: transparent;
 }
 .inscription-toggle:focus-visible { outline: 1px solid var(--teal); outline-offset: 6px; }
+/* Tapped: the words glow gold, fade over to the other language, then the glow
+   settles back to steel. Gold shows only while glowing. Each language has a steel
+   and a gold copy stacked, so the colour change itself can fade. */
 .inscription .words {
+  grid-area: 1 / 1;                 /* both languages in the same spot, so nothing moves */
+  align-self: center;
+  display: grid;
   font-family: "Bodoni Moda", Georgia, serif;
   font-style: italic;
   font-size: 1.15em;
   line-height: 1.45;
-  min-height: 1.45em;
   text-wrap: balance;
-  background-image: linear-gradient(180deg, #fbfbfc 0%, #c3c8ce 40%, #858c94 60%, #dfe2e5 100%);
+  transition: opacity .7s ease, filter .45s ease;
+}
+.inscription .words > span {
+  grid-area: 1 / 1;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  transition: filter .45s ease;
 }
-/* tapped: the words glow, are re-typed in the other language, then the glow settles.
-   The English reads in gold leaf (the one place text is gold, by request). */
-.inscription.gold .words { background-image: linear-gradient(180deg, #f8e9b6 0%, #d8b466 45%, #ad8840 62%, #eed690 100%); }
-.inscription.glow .words {
-  filter: drop-shadow(0 0 5px rgba(244, 212, 130, .9)) drop-shadow(0 0 16px rgba(214, 178, 100, .6));
+.inscription .steel-ink { background-image: linear-gradient(180deg, #fbfbfc 0%, #c3c8ce 40%, #858c94 60%, #dfe2e5 100%); }
+.inscription .gold-ink {
+  background-image: linear-gradient(180deg, #f8e9b6 0%, #d8b466 45%, #ad8840 62%, #eed690 100%);
+  opacity: 0;
+  transition: opacity .45s ease;
 }
+.inscription .english { opacity: 0; }
+.inscription.translated .latin { opacity: 0; }
+.inscription.translated .english { opacity: 1; }
+.inscription.glow .gold-ink { opacity: 1; }
+.inscription.glow .words { filter: drop-shadow(0 0 5px rgba(244, 212, 130, .9)) drop-shadow(0 0 16px rgba(214, 178, 100, .6)); }
 /* placed on the pedestal panel by the script; appears once the serpent is drawn */
 .inscription.placed {
   position: absolute;
@@ -222,8 +234,8 @@ img { max-width: 100%; display: block; }
   pointer-events: none;
   transition: opacity 1.8s ease, filter 1.8s ease;
 }
-.inscription.placed .words { font-size: 1.4em; }      /* short maxim: engrave it larger */
-.inscription.placed.english .words { font-size: 1.05em; }
+.inscription.placed .latin { font-size: 1.4em; }      /* short maxim: engrave it larger */
+.inscription.placed .english { font-size: 1.05em; }
 .inscription.shown { opacity: 1; filter: none; pointer-events: auto; }
 .home-foot {
   position: absolute;
