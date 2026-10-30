@@ -202,6 +202,25 @@
     };
   }
 
+  // ---- the drawing front
+  // Everything below `frontR` (in drawing units) is not drawn yet. The front is
+  // ragged, so lines end at staggered heights instead of a straight cut, and it
+  // moves down as the visitor scrolls.
+  var frontR = Infinity;
+  var hash = function (i) { var x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x); };
+  function frontPath(R) {
+    var p = new Path2D(), x0 = box[0] - 20, x1 = box[0] + box[2] + 20, step = 9;
+    p.moveTo(x0, -1e5);
+    p.lineTo(x1, -1e5);
+    for (var i = 0, x = x1; x > x0; i++, x -= step) {
+      var off = 34 * Math.sin(x * .021 + 1.3) + 22 * Math.sin(x * .067 + 4.1) + (hash(i) - .5) * 70;
+      p.lineTo(x, R + off);
+      p.lineTo(x - step, R + off);
+    }
+    p.closePath();
+    return p;
+  }
+
   // ---- one frame
   function render(t, live) {
     var P = pose(t);
@@ -231,6 +250,12 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    if (frontR < Infinity) {
+      apply(ctx, V);
+      ctx.clip(frontPath(frontR));
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
     ctx.globalAlpha = WING_ALPHA;
     ctx.drawImage(layers.wingMask, 0, 0);
 
@@ -256,6 +281,7 @@
       apply(ctx, s.rig ? V.multiply(P.rigs[s.rig]) : V);
       drawLive(ctx, s, l.p);
     });
+    ctx.restore();
   }
 
   resize();
@@ -264,7 +290,7 @@
     strokes.forEach(function (s) { s.state = 2; commit(s); });
     render(Infinity, []);
   } else {
-    var start = null;
+    var start = null, openingDone = false;
     var frame = function (now) {
       if (start === null) start = now;
       var t = (now - start) / 1000, live = [];
@@ -276,16 +302,17 @@
       }
       render(t, live);
       if (t < END || live.length) requestAnimationFrame(frame);
-      else render(Infinity, []);
+      else { openingDone = true; render(Infinity, []); }
     };
     requestAnimationFrame(frame);
   }
 
-  // ---- the rest of the statue, drawn as the visitor scrolls down
+  // ---- the rest of the statue, revealed as the visitor scrolls down
   var section = document.querySelector('[data-lady-justice-lower]');
   var layoutLower = function () {};
   if (section && lowerStrokes.length) {
     var done = document.createElement('canvas'), liveCanvas = document.createElement('canvas');
+    var full = document.createElement('canvas'), serpLayer = document.createElement('canvas');
     done.className = liveCanvas.className = 'art-canvas';
     done.setAttribute('aria-hidden', 'true');
     liveCanvas.setAttribute('aria-hidden', 'true');
@@ -293,9 +320,11 @@
     section.insertBefore(done, liveCanvas);
     var inscription = section.querySelector('[data-inscription]');
     var dctx = done.getContext('2d'), lctx = liveCanvas.getContext('2d');
-    var queue = lowerStrokes.slice().sort(function (a, b) { return a.y - b.y; });
-    var next = 0, active = [], lastStart = 0, reached = -Infinity, running = false, kk = 1, LV;
-    var serpentLeft = lowerStrokes.filter(function (s) { return s.part === 'serpent'; }).length;
+    var body = lowerStrokes.filter(function (s) { return s.part !== 'serpent'; });
+    var serpent = lowerStrokes.filter(function (s) { return s.part === 'serpent'; });
+    var kk = 1, LV, goal = -Infinity, running = false, serpentStart = null, serpentLeft = serpent.length;
+
+    var paint = function (c, s) { c.globalAlpha = s.op; c.fillStyle = s.color; c.fill(s.fill); };
 
     layoutLower = function () {
       // line up exactly with the opening drawing: same scale, same left edge
@@ -308,6 +337,8 @@
         c.style.left = (art.left - sec.left) + 'px';
         c.style.width = w + 'px';
         c.style.height = h + 'px';
+      });
+      [done, liveCanvas, full, serpLayer].forEach(function (c) {
         c.width = Math.round(w * dpr);
         c.height = Math.round(h * dpr);
       });
@@ -322,53 +353,88 @@
         inscription.style.height = (P[3] - P[1]) * kk + 'px';
         inscription.style.fontSize = Math.max(11, Math.min(21, kk * 19)) + 'px';
       }
-      apply(dctx, LV);
-      lowerStrokes.forEach(function (s) { if (s.state === 2) paint(dctx, s); });
+      // the whole lower robe and pedestal are painted once, then uncovered by the front
+      var fctx = full.getContext('2d'), sctx = serpLayer.getContext('2d');
+      apply(fctx, LV);
+      body.forEach(function (s) { paint(fctx, s); });
+      apply(sctx, LV);
+      serpent.forEach(function (s) { if (s.state === 2) paint(sctx, s); });
+      drawLower();
     };
 
-    var paint = function (c, s) { c.globalAlpha = s.op; c.fillStyle = s.color; c.fill(s.fill); };
+    var drawLower = function () {
+      apply(dctx, new DOMMatrix());
+      dctx.globalAlpha = 1;
+      dctx.clearRect(0, 0, done.width, done.height);
+      dctx.save();
+      if (frontR < Infinity) {
+        apply(dctx, LV);
+        dctx.clip(frontPath(frontR));
+        apply(dctx, new DOMMatrix());
+      }
+      dctx.drawImage(full, 0, 0);
+      dctx.restore();
+      dctx.drawImage(serpLayer, 0, 0);
+    };
 
-    var revealY = function () {
+    // where the front should be: a little ahead of the bottom of the screen
+    var target = function () {
       var doc = document.documentElement;
       if (window.innerHeight + window.scrollY >= doc.scrollHeight - 4) return Infinity;
-      return D.lower[0] + (window.innerHeight * .9 - section.getBoundingClientRect().top) / kk;
+      return D.lower[0] + (window.innerHeight * .85 - section.getBoundingClientRect().top) / kk;
     };
-
-    var finishStroke = function (s) {
-      s.state = 2;
-      paint(dctx, s);
-      if (s.part === 'serpent' && --serpentLeft === 0 && inscription) inscription.classList.add('shown');
-    };
+    var END_R = D.lower[1] + 160;   // far enough below the pedestal that nothing is clipped
 
     var tick = function (now) {
       var t = now / 1000;
-      reached = Math.max(reached, revealY());
-      while (next < queue.length && queue[next].y <= reached) {
-        var s = queue[next++];
-        s.t0 = Math.max(t, lastStart + .0015);
-        lastStart = s.t0;
-        active.push(s);
+      goal = Math.max(goal, target());
+      var g = Math.min(goal, END_R);
+      // glide towards the goal so lines grow smoothly rather than jumping with the scroll
+      if (frontR < g) frontR = Math.min(g, frontR + Math.max(1.5, (g - frontR) * .12));
+      if (frontR >= END_R) frontR = Infinity;
+      if (openingDone && frontR < D.lower[0] + 200) render(Infinity, []);
+      else if (openingDone && frontR === Infinity) render(Infinity, []);
+
+      // the serpent at her feet is drawn last, once the visitor reaches the bottom
+      if (serpentStart === null && frontR >= D.lower[1] - 30) {
+        serpentStart = t;
+        serpent.forEach(function (s, i) { s.t0 = t + 1.1 * i / serpent.length; });
       }
       apply(lctx, new DOMMatrix());
       lctx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
-      apply(dctx, LV);
-      apply(lctx, LV);
-      active = active.filter(function (s) {
-        var p = (t - s.t0) / s.dur;
-        if (p < 0) return true;
-        if (p >= 1) { finishStroke(s); return false; }
-        drawLive(lctx, s, s.trace ? ease(p) : p);
-        return true;
-      });
-      if (active.length) requestAnimationFrame(tick); else running = false;
+      var serpentBusy = false;
+      if (serpentStart !== null && serpentLeft) {
+        var sctx = serpLayer.getContext('2d');
+        apply(sctx, LV);
+        apply(lctx, LV);
+        serpent.forEach(function (s) {
+          if (s.state === 2 || t < s.t0) { if (s.state !== 2) serpentBusy = true; return; }
+          var p = (t - s.t0) / s.dur;
+          if (p >= 1) {
+            s.state = 2;
+            paint(sctx, s);
+            if (--serpentLeft === 0 && inscription) inscription.classList.add('shown');
+          } else {
+            serpentBusy = true;
+            drawLive(lctx, s, s.trace ? ease(p) : p);
+          }
+        });
+      }
+      drawLower();
+      if (frontR < g || serpentBusy) requestAnimationFrame(tick); else running = false;
     };
     var wake = function () { if (!running) { running = true; requestAnimationFrame(tick); } };
 
-    layoutLower();
     if (reduce) {
-      apply(dctx, LV);
-      lowerStrokes.forEach(finishStroke);
+      serpent.forEach(function (s) { s.state = 2; });
+      serpentLeft = 0;
+      layoutLower();
+      if (inscription) inscription.classList.add('shown');
     } else {
+      layoutLower();
+      frontR = target();
+      goal = frontR;
+      drawLower();
       window.addEventListener('scroll', wake, { passive: true });
       wake();
     }
