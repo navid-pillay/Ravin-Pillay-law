@@ -11,6 +11,18 @@
     sessionStorage.removeItem('knobTurned');
   } catch (e) {}
 
+  // The pedestal inscription: tap to fade between the Latin and the English translation.
+  document.querySelectorAll('.inscription-toggle').forEach(function (btn) {
+    var box = btn.closest('.inscription'), latin = btn.querySelector('.latin'), english = btn.querySelector('.english');
+    btn.addEventListener('click', function () {
+      var on = box.classList.toggle('translated');
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.title = on ? 'Tap for the original Latin' : 'Tap for the English translation';
+      latin.setAttribute('aria-hidden', on ? 'true' : 'false');
+      english.setAttribute('aria-hidden', on ? 'false' : 'true');
+    });
+  });
+
   var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var DURATION = 750;
   var EASE = 'cubic-bezier(.65, 0, .35, 1)';
