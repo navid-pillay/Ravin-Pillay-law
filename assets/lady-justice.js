@@ -36,6 +36,16 @@
 
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var box = D.box;
+  var root = document.documentElement;
+
+  // On an inner page ("side") she is only re-sketched when arriving from the home
+  // page; between inner pages she is already standing there (the static image).
+  var side = host.getAttribute('data-lady-justice') === 'side';
+  if (side && (reduce || !root.classList.contains('from-home'))) return;
+  // After a page change she is re-sketched quickly, scales already raised, eyes already covered.
+  var quick = side || root.classList.contains('from-inner');
+  var SPEED = quick ? 2.4 : 1;
+  if (quick) LOWERED = 0;
 
   var ease = function (p) { return p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; };
   var clamp = function (p) { return Math.max(0, Math.min(1, p)); };
@@ -81,6 +91,7 @@
   Object.keys(perPart).forEach(function (part) {
     var rows = perPart[part], win = T[part];
     rows.forEach(function (r, i) {
+      if (quick && part === 'eyes') return;
       var rig = D.rigs[r[1]] || null, pts = decode(r[7]), w = r[3] / 10;
       var ys = pts.map(function (p) { return p[1]; });
       var s = {
@@ -168,6 +179,7 @@
   canvas.setAttribute('role', 'img');
   canvas.setAttribute('aria-label', 'Sketch of winged, blindfolded Lady Justice holding the scales, a serpent around her neck');
   host.appendChild(canvas);
+  if (side) host.classList.add('sketching');   // hide the static image while she is drawn
   var ctx = canvas.getContext('2d');
   var layers = {}, V, Vinv;
   var LAYER_NAMES = ['wings', 'wingMask', 'figure', 'eyes'].concat(RIG_ORDER);
@@ -336,12 +348,10 @@
   // ---- main loop
   var start = null, running = false, serpentStart = null, serpentLeft = serpent.length, heroSettled = false;
 
-  // Arriving back from an inner page she is already drawn, so skip the opening sketch.
-  var skipOpening = document.documentElement.classList.contains('from-inner');
 
   function frame(now) {
-    if (start === null) start = skipOpening ? now - END * 1000 : now;
-    var t = (now - start) / 1000;
+    if (start === null) start = now;
+    var t = (now - start) / 1000 * SPEED;
 
     // move the front towards the scroll position, gliding rather than jumping
     goal = Math.max(goal, target());

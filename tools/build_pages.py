@@ -43,7 +43,7 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30h"
+VERSION = "2026-10-30i"
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
@@ -53,7 +53,11 @@ def page(fname, title, desc, body, foot=True, tail=""):
         for h, l in NAV)
     home = fname == "index.html"
     # inner pages keep Lady Justice on the left, turned to face the content
-    side = "" if home else '\n  <img class="lady-side" src="assets/lady-side.webp" alt="" aria-hidden="true" width="1650" height="1500">\n'
+    side = "" if home else ('\n  <div class="lady-side" data-lady-justice="side" aria-hidden="true">'
+                            '<img src="assets/lady-side.webp" alt="" width="1650" height="1500"></div>\n')
+    if not home:  # the re-sketch when arriving from the home page
+        tail = (f'  <script src="assets/lady-justice-data.js?v={VERSION}"></script>\n'
+                f'  <script src="assets/lady-justice.js?v={VERSION}"></script>\n')
     html = (HEAD.format(title=title, desc=desc, knobs=knobs, version=VERSION, html_class=' class="is-home"' if home else "")
             + side + body + (FOOT if foot else "")
             + f'\n  <script src="assets/site.js?v={VERSION}"></script>\n' + tail + "</body>\n</html>\n")

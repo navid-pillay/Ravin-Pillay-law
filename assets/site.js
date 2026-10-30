@@ -1,10 +1,10 @@
 // Navigation between pages.
 //
 // Knobs: the chosen knob turns on (clockwise) and the current one turns off.
-// Page change: the content swings away in 3D while Lady Justice glides to
-// where she sits on the next page, turning around on the way (she faces the
-// content on the inner pages). The next page opens with her already in place
-// and its content swinging in (see "Page transitions" in styles.css).
+// Page change: the content swings away in 3D while Lady Justice glides towards
+// where she sits on the next page and fades; the next page re-sketches her
+// there (facing the content on the inner pages) as its content swings in.
+// Between inner pages she simply stays put.
 (function () {
   var root = document.documentElement;
   try {
@@ -45,12 +45,13 @@
     var dx = (to.rect.left + to.rect.width / 2) - (from.left + from.width / 2);
     var dy = (to.rect.top + to.rect.height / 2) - (from.top + from.height / 2);
     var sc = to.rect.height / from.height;
-    // keep each element's own base transform, then add the glide, the turn and the scale
-    var base = isHome ? 'translateX(-55%) ' : '';
-    var flip0 = isHome ? 0 : 180, flip1 = isHome ? 180 : 0;   // 180deg reads as her mirror image
+    // glide and shrink (or grow) towards her place on the next page while fading;
+    // the next page then re-sketches her there, facing the other way
+    var base = getComputedStyle(lady).transform;   // her own placement (and mirroring)
+    base = base === 'none' ? '' : base + ' ';
     lady.animate([
-      { transform: 'translate(0px, 0px) ' + base + 'perspective(1400px) rotateY(' + flip0 + 'deg) scale(1)', opacity: getComputedStyle(lady).opacity },
-      { transform: 'translate(' + dx + 'px, ' + dy + 'px) ' + base + 'perspective(1400px) rotateY(' + flip1 + 'deg) scale(' + sc + ')', opacity: to.opacity }
+      { transform: 'translate(0px, 0px) ' + base + 'scale(1)', opacity: getComputedStyle(lady).opacity },
+      { transform: 'translate(' + dx + 'px, ' + dy + 'px) ' + base + 'scale(' + sc + ')', opacity: 0 }
     ], { duration: DURATION, easing: EASE, fill: 'forwards' });
   }
 

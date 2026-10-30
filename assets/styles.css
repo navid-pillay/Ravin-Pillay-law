@@ -314,22 +314,28 @@ img { max-width: 100%; display: block; }
   bottom: 0;
   left: calc(var(--h) * -0.26);
   height: var(--h);
-  width: auto;
-  max-width: none;
   aspect-ratio: 1100 / 1000;
   transform: scaleX(-1);
   opacity: .7;
   pointer-events: none;
   z-index: 0;
 }
+.lady-side img, .lady-side canvas { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
+.lady-side.sketching img { visibility: hidden; }
 .page, .site-foot { position: relative; z-index: 1; }
-@media (min-width: 1000px) {
-  .page > .wrap { width: auto; margin-left: max(36vw, 360px); max-width: 860px; padding-left: 0; }
-  .site-foot .wrap { margin-left: max(36vw, 360px); padding-left: 0; }
+@media (min-width: 700px) {
+  .page > .wrap { width: auto; margin-left: max(36vw, 290px); max-width: 860px; padding-left: 0; padding-right: 28px; }
+  .site-foot .wrap { margin-left: max(36vw, 290px); padding-left: 0; }
 }
-@media (max-width: 999px) {
-  /* no room for a column: she stands faintly behind the content */
-  .lady-side { --h: 70vh; left: calc(var(--h) * -0.3); opacity: .25; }
+@media (min-width: 700px) and (max-width: 999px) {
+  .lady-side { --h: min(70vh, 48vw); }
+  .page > .wrap { margin-left: 37vw; }
+  .site-foot .wrap { margin-left: 37vw; }
+}
+@media (max-width: 699px) {
+  /* phones: she stands above the content instead of beside it */
+  .lady-side { --h: 36vh; position: absolute; top: 70px; bottom: auto; left: 50%; transform: translateX(-50%) scaleX(-1); }
+  .page { padding-top: calc(36vh + 70px); }
 }
 
 /* ---------- Page transitions
