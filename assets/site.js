@@ -1,10 +1,10 @@
 // Navigation between pages.
 //
 // Knobs: the chosen knob turns on (clockwise) and the current one turns off.
-// Page change: the content swings away in 3D while Lady Justice turns round
-// and glides to where she stands on the next page (facing the content on the
-// inner pages); the next page opens with her there and its content swinging
-// in. Between inner pages she simply stays put.
+// Page change: the content swings away in 3D while Lady Justice un-draws
+// herself; the next page draws her afresh in her new place (facing the content
+// on the inner pages) as its content swings in. Between inner pages she simply
+// stays put.
 (function () {
   var root = document.documentElement;
   try {
@@ -13,50 +13,15 @@
   } catch (e) {}
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  var DURATION = 900;
+  var DURATION = 750;
   var EASE = 'cubic-bezier(.65, 0, .35, 1)';
   var isHome = root.classList.contains('is-home');
 
-  // Where (and how faint) Lady Justice is on the other kind of page: measured
-  // from an invisible copy laid out with the real stylesheet.
-  function probe(toHome) {
-    var holder = document.createElement('div'), el;
-    if (toHome) {
-      holder.className = 'home-hero';
-      holder.style.cssText = 'position:fixed;top:0;left:0;width:100%;visibility:hidden;pointer-events:none';
-      el = document.createElement('div');
-      el.className = 'art';
-      holder.appendChild(el);
-    } else {
-      el = holder;
-      holder.className = 'lady-side';
-      holder.style.visibility = 'hidden';
-    }
-    document.body.appendChild(holder);
-    var r = el.getBoundingClientRect(), op = parseFloat(getComputedStyle(el).opacity);
-    holder.remove();
-    return { rect: r, opacity: op };
-  }
-
-  function moveLady(toHome) {
+  function undrawLady(toHome) {
     var lady = isHome ? document.querySelector('.home-hero .art') : document.querySelector('.lady-side');
     if (!lady || isHome === toHome) return;  // between inner pages she stays where she is
-    var to = probe(toHome);
-    if (window.ladyJustice) {
-      // she turns round in 3D as she glides into place (0 = facing left as on the home page,
-      // 180 degrees = her mirror image, facing the content on the inner pages)
-      window.ladyJustice.turn(lady, to.rect, to.opacity, isHome ? 0 : Math.PI, isHome ? Math.PI : 0, DURATION);
-      return;
-    }
-    var from = lady.getBoundingClientRect();
-    var dx = (to.rect.left + to.rect.width / 2) - (from.left + from.width / 2);
-    var dy = (to.rect.top + to.rect.height / 2) - (from.top + from.height / 2);
-    var base = getComputedStyle(lady).transform;
-    base = base === 'none' ? '' : base + ' ';
-    lady.animate([
-      { transform: 'translate(0px, 0px) ' + base + 'scale(1)' },
-      { transform: 'translate(' + dx + 'px, ' + dy + 'px) ' + base + 'scale(' + to.rect.height / from.height + ')' }
-    ], { duration: DURATION, easing: EASE, fill: 'forwards' });
+    if (window.ladyJustice) window.ladyJustice.undraw(lady, !isHome, DURATION);
+    else lady.animate([{ opacity: getComputedStyle(lady).opacity }, { opacity: 0 }], { duration: DURATION, fill: 'forwards' });
   }
 
   var links = document.querySelectorAll('.knob, .brand');
@@ -76,7 +41,7 @@
       } catch (err) {}
       root.classList.remove('from-home', 'from-inner');
       root.classList.add('leaving');
-      moveLady(toHome);
+      undrawLady(toHome);
       setTimeout(function () { location.href = a.href; }, DURATION);
     });
   });

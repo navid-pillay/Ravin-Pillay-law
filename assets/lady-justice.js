@@ -38,11 +38,13 @@
   var box = D.box;
   var root = document.documentElement;
 
-  // On an inner page ("side") she stands as a static image; this script only
-  // provides the turn played when leaving for another page.
+  // On an inner page ("side") she stands as a static image, except when arriving
+  // from the home page, where she is re-drawn in place. After a page change she
+  // is re-drawn quickly: scales already raised, eyes already covered.
   var side = host.getAttribute('data-lady-justice') === 'side';
-  // Back home from an inner page she has just turned into place: no opening sketch.
-  var arrived = root.classList.contains('from-inner');
+  var redraw = root.classList.contains(side ? 'from-home' : 'from-inner');
+  var SPEED = redraw ? 2.2 : 1;
+  if (redraw) LOWERED = 0;
 
   var ease = function (p) { return p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; };
   var clamp = function (p) { return Math.max(0, Math.min(1, p)); };
@@ -88,14 +90,14 @@
   Object.keys(perPart).forEach(function (part) {
     var rows = perPart[part], win = T[part];
     rows.forEach(function (r, i) {
-      if (part === 'eyes' && (side || arrived)) return;
+      if (part === 'eyes' && (side || redraw)) return;
       if (side && LOWER_PARTS[part]) return;
       var rig = D.rigs[r[1]] || null, pts = decode(r[7]), w = r[3] / 10;
       var ys = pts.map(function (p) { return p[1]; });
       var s = {
         part: part, rig: rig, op: r[2] / 100, w: w, trace: !!r[6],
         lower: !!LOWER_PARTS[part], serpent: part === 'serpent',
-        fill: side ? null : ribbon(pts, w, r[4] / 100, r[5] / 100),
+        fill: ribbon(pts, w, r[4] / 100, r[5] / 100),
         color: part === 'blindfold' || GOLD_RIGS[rig] ? D.gold : D.ink,
         pts: pts, ymin: Math.min.apply(null, ys), ymax: Math.max.apply(null, ys),
         jit: (hash(n) - .5) * 2 * STAGGER, delay: hash(n + .5) * .15,
@@ -133,36 +135,45 @@
     return { rig: D.rigs[m[0]] || null, path: p };
   });
 
-  // ---- turning between pages
-  // A light 3D model of the figure: each part is wrapped round a vertical
-  // cylinder (the wings sit on a plane behind her). Rotating it swings her lines
-  // round in depth, so she turns like a statue instead of flipping like a card,
-  // and at 180 degrees she is exactly her mirror image (as on the inner pages).
+  // ---- un-drawing when leaving the page
+  // Her lines retract in the reverse of the order they were drawn (blindfold
+  // first, face last); the next page then draws her afresh in her new place.
   var AXIS = box[0] + box[2] / 2;           // the line the inner-page image is mirrored about
-  var HEAD = [440, 140], TORSO = [500, 240], ARM = [480, 340];   // [centre x, radius]
-  var HEAD_PARTS = { construct: 1, hair: 1, face: 1, eyes: 1, neck: 1, blindfold: 1 };
-  var turnModel = null;
-  function buildTurnModel() {
-    turnModel = strokes.filter(function (s) { return !s.lower && s.part !== 'eyes'; }).map(function (s) {
-      var m = s.part === 'wings' ? null : HEAD_PARTS[s.part] ? HEAD : s.part === 'arm' ? ARM : TORSO;
+  var undrawModel = null;
+  function buildUndrawModel() {
+    var list = strokes.filter(function (s) { return !s.lower && s.part !== 'eyes'; });
+    var order = list.slice().sort(function (a, b) { return (a.t0 || 0) - (b.t0 || 0); });
+    undrawModel = order.map(function (s, i) {
+      var cum = [0];
+      for (var k = 1; k < s.pts.length; k++) {
+        cum.push(cum[k - 1] + Math.hypot(s.pts[k][0] - s.pts[k - 1][0], s.pts[k][1] - s.pts[k - 1][1]));
+      }
       return {
-        s: s,
-        z: s.pts.map(function (p) {
-          return m ? .8 * Math.sqrt(Math.max(0, m[1] * m[1] - (p[0] - m[0]) * (p[0] - m[0]))) : -140;
-        }),
+        s: s, cum: cum, len: cum[cum.length - 1] || 1,
+        rank: 1 - i / order.length,         // drawn last = removed first
         key: (s.color === D.gold ? 'g' : 'i') + Math.round(s.op * (s.part === 'wings' ? WING_ALPHA : 1) * 10) + '|' + Math.max(1, Math.round(s.w * 2))
       };
     });
   }
 
-  function drawTurn(c, rect, theta, alpha) {
-    var cos = Math.cos(theta), sin = Math.sin(theta), k = rect.height / box[3], paths = {};
-    turnModel.forEach(function (m) {
-      var p = paths[m.key] || (paths[m.key] = new Path2D()), pts = m.s.pts;
+  function drawPartial(c, rect, mirror, alpha, p) {
+    var k = rect.height / box[3], paths = {};
+    undrawModel.forEach(function (m) {
+      // each stroke retracts over the last 35% of its own slot in the sequence
+      var start = m.rank * .65, f = 1 - clamp((p - start) / .35);
+      if (f <= 0) return;
+      var keep = m.len * f, pts = m.s.pts, path = paths[m.key] || (paths[m.key] = new Path2D());
       for (var i = 0; i < pts.length; i++) {
-        var x = AXIS + (pts[i][0] - AXIS) * cos + m.z[i] * sin;
-        var X = rect.left + (x - box[0]) * k, Y = rect.top + (pts[i][1] - box[1]) * k;
-        if (i) p.lineTo(X, Y); else p.moveTo(X, Y);
+        var x = pts[i][0], y = pts[i][1];
+        if (i && m.cum[i] > keep) {           // finish exactly at the retracting tip
+          var t = (keep - m.cum[i - 1]) / (m.cum[i] - m.cum[i - 1]);
+          x = pts[i - 1][0] + (x - pts[i - 1][0]) * t;
+          y = pts[i - 1][1] + (y - pts[i - 1][1]) * t;
+        }
+        if (mirror) x = 2 * AXIS - x;
+        var X = rect.left + (x - box[0]) * k, Y = rect.top + (y - box[1]) * k;
+        if (i) path.lineTo(X, Y); else path.moveTo(X, Y);
+        if (i && m.cum[i] > keep) break;
       }
     });
     c.lineCap = c.lineJoin = 'round';
@@ -175,11 +186,10 @@
     });
   }
 
-  // Turn `el` (the figure on this page) from angle `from` to `to` while it glides
-  // to `target` (a screen rectangle), then leave her standing there.
-  function turn(el, target, targetOpacity, from, to, duration) {
-    if (!turnModel) buildTurnModel();
-    var src = el.getBoundingClientRect(), srcOpacity = parseFloat(getComputedStyle(el).opacity) || 1;
+  // Un-draw `el` (the figure on this page) over `duration` ms.
+  function undraw(el, mirror, duration) {
+    if (!undrawModel) buildUndrawModel();
+    var rect = el.getBoundingClientRect(), alpha = parseFloat(getComputedStyle(el).opacity) || 1;
     var overlay = document.createElement('canvas');
     overlay.className = 'turn-canvas';
     overlay.setAttribute('aria-hidden', 'true');
@@ -189,26 +199,20 @@
     overlay.height = Math.round(innerHeight * dpr);
     var c = overlay.getContext('2d');
     el.style.visibility = 'hidden';
-    var lerp = function (a, b, e) { return a + (b - a) * e; };
     var t0 = null;
     (function step(now) {
       if (t0 === null) t0 = now;
-      var p = clamp((now - t0) / duration), e = ease(p);
-      var rect = {
-        left: lerp(src.left, target.left, e), top: lerp(src.top, target.top, e),
-        height: lerp(src.height, target.height, e)
-      };
+      var p = clamp((now - t0) / duration);
       c.setTransform(1, 0, 0, 1, 0, 0);
       c.clearRect(0, 0, overlay.width, overlay.height);
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawTurn(c, rect, lerp(from, to, e), lerp(srcOpacity, targetOpacity, e));
+      drawPartial(c, rect, mirror, alpha, p);
       if (p < 1) requestAnimationFrame(step);
     })(performance.now());
-    return overlay;
   }
 
-  window.ladyJustice = { turn: turn };
-  if (side) return;
+  window.ladyJustice = { undraw: undraw };
+  if (side && !redraw) return;
 
   // ---- the drawing front
   var frontR = Infinity, goal = -Infinity;
@@ -254,6 +258,7 @@
   canvas.setAttribute('role', 'img');
   canvas.setAttribute('aria-label', 'Sketch of winged, blindfolded Lady Justice holding the scales, a serpent around her neck');
   host.appendChild(canvas);
+  if (side) host.classList.add('sketching');   // hide the static image while she is drawn
   if (side) host.classList.add('sketching');   // hide the static image while she is drawn
   var ctx = canvas.getContext('2d');
   var layers = {}, V, Vinv;
@@ -427,8 +432,8 @@
 
 
   function frame(now) {
-    if (start === null) start = arrived ? now - END * 1000 : now;
-    var t = (now - start) / 1000;
+    if (start === null) start = now;
+    var t = (now - start) / 1000 * SPEED;
 
     // move the front towards the scroll position, gliding rather than jumping
     goal = Math.max(goal, target());
