@@ -12,7 +12,16 @@ HEAD = '''<!doctype html>
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/styles.css?v={version}">
   <script>
-    // Which kind of page we came from, so the page transition knows whether Lady Justice turns around.
+    try {{
+      // Refreshing the browser always brings the visitor back to the home page
+      // (a reload we trigger ourselves after the Back button is the exception).
+      var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      var reloaded = nav ? nav.type === 'reload' : performance.navigation && performance.navigation.type === 1;
+      var ours = sessionStorage.getItem('bfReload');
+      sessionStorage.removeItem('bfReload');
+      if (reloaded && !ours && !/(^|\\/)(index\\.html)?$/.test(location.pathname)) location.replace('index.html?v={version}');
+    }} catch (e) {{}}
+    // Which kind of page we came from, so Lady Justice knows whether to be re-drawn.
     try {{
       var from = sessionStorage.getItem('navFrom');
       if (from) document.documentElement.classList.add('from-' + from);
@@ -24,7 +33,7 @@ HEAD = '''<!doctype html>
 
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="index.html" aria-label="Ravin Pillay Law, home">
+      <a class="brand" href="index.html?v={version}" aria-label="Ravin Pillay Law, home">
         <img src="assets/logo.svg" alt="" width="190" height="157">
         <span class="brand-text"><b>Ravin Pillay</b><small>Barrister &amp; Solicitor</small></span>
       </a>
@@ -43,13 +52,13 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30l"
+VERSION = "2026-10-30m"
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
 def page(fname, title, desc, body, foot=True, tail=""):
     knobs = "\n".join(
-        f'        <a class="knob" href="{h}"{" aria-current=\"page\"" if h == fname else ""}><span class="dial" aria-hidden="true"></span><span class="knob-label">{l}</span></a>'
+        f'        <a class="knob" href="{h}?v={VERSION}"{" aria-current=\"page\"" if h == fname else ""}><span class="dial" aria-hidden="true"></span><span class="knob-label">{l}</span></a>'
         for h, l in NAV)
     home = fname == "index.html"
     # inner pages keep Lady Justice on the left, turned to face the content

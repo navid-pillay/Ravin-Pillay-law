@@ -38,11 +38,13 @@
   var box = D.box;
   var root = document.documentElement;
 
-  // On an inner page ("side") she stands as a static image, except when arriving
-  // from the home page, where she is re-drawn in place. After a page change she
-  // is re-drawn quickly: scales already raised, eyes already covered.
+  // She is drawn every time a page opens, except moving between inner ("side")
+  // pages, where she is already standing there (the static image). The full
+  // opening plays on a fresh visit to the home page; otherwise she is re-drawn
+  // quickly, scales already raised and eyes already covered.
   var side = host.getAttribute('data-lady-justice') === 'side';
-  var redraw = root.classList.contains(side ? 'from-home' : 'from-inner');
+  var stays = side && root.classList.contains('from-inner');
+  var redraw = side || root.classList.contains('from-inner');
   var SPEED = redraw ? 2.2 : 1;
   if (redraw) LOWERED = 0;
 
@@ -212,7 +214,7 @@
   }
 
   window.ladyJustice = { undraw: undraw };
-  if (side && !redraw) return;
+  if (stays) return;
 
   // ---- the drawing front
   var frontR = Infinity, goal = -Infinity;

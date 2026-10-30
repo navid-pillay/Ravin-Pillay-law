@@ -10,8 +10,8 @@
     if (sessionStorage.getItem('knobTurned')) root.classList.add('knob-arrived');
     sessionStorage.removeItem('knobTurned');
   } catch (e) {}
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+  var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var DURATION = 750;
   var EASE = 'cubic-bezier(.65, 0, .35, 1)';
   var isHome = root.classList.contains('is-home');
@@ -26,7 +26,7 @@
   var links = document.querySelectorAll('.knob, .brand');
   links.forEach(function (a) {
     a.addEventListener('click', function (e) {
-      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (reduceMotion || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       if (a.getAttribute('aria-current') === 'page' || root.classList.contains('leaving')) return;
       var current = document.querySelector('.knob[aria-current="page"]');
@@ -45,15 +45,14 @@
     });
   });
 
-  // coming Back to a page restored from the back/forward cache: put everything back
+  // A page restored by the Back button comes back frozen mid-transition: load it
+  // afresh instead, so Lady Justice is drawn again (see the reload check in <head>).
   window.addEventListener('pageshow', function (e) {
     if (!e.persisted) return;
-    root.classList.remove('leaving');
-    links.forEach(function (a) { a.classList.remove('turning', 'releasing'); });
-    document.querySelectorAll('.art, .lady-side').forEach(function (el) {
-      el.getAnimations().forEach(function (an) { an.cancel(); });
-      el.style.visibility = '';
-    });
-    document.querySelectorAll('.turn-canvas').forEach(function (c) { c.remove(); });
+    try {
+      sessionStorage.setItem('bfReload', '1');
+      sessionStorage.setItem('navFrom', isHome ? 'inner' : 'home');
+    } catch (err) {}
+    location.reload();
   });
 })();
