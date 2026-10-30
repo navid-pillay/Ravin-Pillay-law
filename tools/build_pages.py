@@ -35,7 +35,7 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30c"
+VERSION = "2026-10-30d"
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
