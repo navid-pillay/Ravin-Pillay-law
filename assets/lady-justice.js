@@ -336,8 +336,11 @@
   // ---- main loop
   var start = null, running = false, serpentStart = null, serpentLeft = serpent.length, heroSettled = false;
 
+  // Arriving back from an inner page she is already drawn, so skip the opening sketch.
+  var skipOpening = document.documentElement.classList.contains('from-inner');
+
   function frame(now) {
-    if (start === null) start = now;
+    if (start === null) start = skipOpening ? now - END * 1000 : now;
     var t = (now - start) / 1000;
 
     // move the front towards the scroll position, gliding rather than jumping
