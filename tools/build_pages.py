@@ -55,13 +55,59 @@ FOOT = '''
   </footer>
 '''
 # Bump on every release so browsers fetch fresh CSS/JS instead of cached copies.
-VERSION = "2026-10-30s"
+VERSION = "2026-11-08a"
+
+def sketch_knob(seed):
+    """A machined knob as a pencil sketch, in the same hand as Lady Justice: a
+    knurled rim, the dark band, the face with its cut groove, a little shading.
+    Each line is a separate path so assets/site.js can draw it in on page load.
+    `seed` makes each knob's wobble its own."""
+    import math, random
+    rnd = random.Random(seed)
+    def circle(r, w, op, wob=.45, over=None):
+        a0 = rnd.uniform(0, 360)
+        sweep = 360 + (rnd.uniform(14, 34) if over is None else over)   # loose overshoot, like a hand-drawn circle
+        f1, f2, p1, p2 = rnd.uniform(2, 3), rnd.uniform(5, 7), rnd.uniform(0, 6.3), rnd.uniform(0, 6.3)
+        pts = []
+        for i in range(49):
+            a = math.radians(a0 + sweep * i / 48)
+            rr = r + wob * (math.sin(a * f1 + p1) * .7 + math.sin(a * f2 + p2) * .3) + (i / 48) * rnd.uniform(-.5, .5)
+            pts.append((rr * math.cos(a), rr * math.sin(a)))
+        return line(pts, w, op)
+    def line(pts, w, op):
+        d = "M" + " L".join(f"{x:.2f},{y:.2f}" for x, y in pts)
+        return f'<path d="{d}" stroke-width="{w}" stroke-opacity="{op}"/>'
+    paths = [circle(22, 1.3, .95), circle(22.4, .6, .45, wob=.8)]
+    # knurling: short radial ticks round the rim, drawn as one sweep
+    ticks = []
+    for i in range(44):
+        a = math.radians(i * 360 / 44 + rnd.uniform(-1.5, 1.5))
+        r0, r1 = 18.6 + rnd.uniform(-.3, .3), 21.4 + rnd.uniform(-.3, .3)
+        ticks.append(f"M{r0 * math.cos(a):.2f},{r0 * math.sin(a):.2f} L{r1 * math.cos(a):.2f},{r1 * math.sin(a):.2f}")
+    paths.append(f'<path d="{" ".join(ticks)}" stroke-width=".55" stroke-opacity=".7"/>')
+    paths += [circle(17.6, 1, .85), circle(13.4, 1.15, .95), circle(13, .5, .4, wob=.7)]
+    # the cut groove across the face (this is what shows the knob turning)
+    for x in (-1.3, 1.3):
+        paths.append(line([(x + rnd.uniform(-.2, .2), -11.6), (x + rnd.uniform(-.3, .3), 0), (x + rnd.uniform(-.2, .2), 11.6)], .95, .9))
+    # shading on the lower right of the face, inside the circle
+    hatch = []
+    for k in range(7):
+        c = 4 + k * 2.4                      # lines x + y = c, kept inside r = 12
+        h = math.sqrt(max(0, 2 * 144 - c * c)) / 2
+        if h < 1.5:
+            continue
+        x0, y0 = c / 2 - h * .7, c / 2 + h * .7
+        x1, y1 = c / 2 + h * .7, c / 2 - h * .7
+        hatch.append(f"M{x0 + rnd.uniform(-.4, .4):.2f},{y0:.2f} L{x1:.2f},{y1 + rnd.uniform(-.4, .4):.2f}")
+    paths.append(f'<path d="{" ".join(hatch)}" stroke-width=".45" stroke-opacity=".55"/>')
+    return ('<svg class="knob-sketch" viewBox="-25 -25 50 50" fill="none" stroke="currentColor" '
+            'stroke-linecap="round" stroke-linejoin="round">' + "".join(paths) + '</svg>')
 
 NAV = [("practice.html", "Practice"), ("about.html", "About"), ("contact.html", "Contact")]
 
 def page(fname, title, desc, body, foot=True, tail=""):
     knobs = "\n".join(
-        f'        <a class="knob" href="{h}?v={VERSION}"{" aria-current=\"page\"" if h == fname else ""}><span class="dial" aria-hidden="true"></span><span class="knob-label">{l}</span></a>'
+        f'        <a class="knob" href="{h}?v={VERSION}"{" aria-current=\"page\"" if h == fname else ""}><span class="dial" aria-hidden="true">{sketch_knob(h)}</span><span class="knob-label">{l}</span></a>'
         for h, l in NAV)
     home = fname == "index.html"
     # inner pages keep Lady Justice on the left, turned to face the content

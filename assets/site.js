@@ -11,6 +11,22 @@
     sessionStorage.removeItem('knobTurned');
   } catch (e) {}
 
+  // The knobs sketch themselves in as the page loads, line by line like Lady
+  // Justice (rim, knurling, rings, groove, shading), one knob after another.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && Element.prototype.animate) {
+    document.querySelectorAll('.knob-sketch').forEach(function (svg, k) {
+      svg.querySelectorAll('path').forEach(function (path, i) {
+        var len = path.getTotalLength ? path.getTotalLength() : 0;
+        if (!len) return;
+        path.style.strokeDasharray = len + ' ' + (len + 1);
+        path.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], {
+          duration: 260 + Math.min(420, len * 2.2), delay: 150 + k * 140 + i * 70,
+          easing: 'cubic-bezier(.45, 0, .25, 1)', fill: 'backwards'
+        });
+      });
+    });
+  }
+
   // The pedestal inscription: tap it and the words glow gold, fade over to the
   // other language, then the glow settles back to the usual steel.
   document.querySelectorAll('.inscription-toggle').forEach(function (btn) {
